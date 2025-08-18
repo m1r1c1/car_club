@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper document structure and encoding -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Page title shown in browser tab -->
+    <title>Car Club - Redirecting...</title>
+    
+    <!-- Meta refresh tag - redirects to src/pages/index.html after 0 seconds -->
+    <meta http-equiv="refresh" content="0; url=src/pages/index.html">
+    
+    <!-- Canonical URL to prevent duplicate content issues -->
+    <link rel="canonical" href="src/pages/index.html">
+    
+    <!-- Basic styling for users who might see this page briefly -->
+    <style>
+        /* Body styling for centered content */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Loading spinner animation */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        /* Keyframe animation for spinner rotation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Link styling for manual redirect option */
+        .redirect-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        /* Hover effect for redirect link */
+        .redirect-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main content container -->
+    <div class="redirect-container">
+        <!-- Page heading -->
+        <h1>Car Club</h1>
+        
+        <!-- Loading indicator -->
+        <div class="spinner"></div>
+        
+        <!-- Redirect message -->
+        <p>Redirecting you to the main site...</p>
+        
+        <!-- Manual redirect link as fallback -->
+        <p>
+            If you are not redirected automatically, 
+            <a href="src/pages/index.html" class="redirect-link">click here to continue</a>.
+        </p>
+    </div>
+
+    <script>
+        // JavaScript redirect as backup to meta refresh
+        // This function handles the redirect programmatically
+        function redirectToMainSite() {
+            // Check if the browser supports the location object
+            if (window.location) {
+                // Redirect to the main index page in src/pages folder
+                window.location.href = 'src/pages/index.html';
+            }
+        }
+        
+        // Set timeout to redirect after 100ms if meta refresh fails
+        // This provides a fallback mechanism for browsers that might not support meta refresh
+        setTimeout(redirectToMainSite, 100);
+        
+        // Add event listener for immediate redirect when page loads
+        // This ensures redirect happens as soon as the DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Additional redirect trigger for better browser compatibility
+            redirectToMainSite();
+        });
+    </script>
+</body>
+</html>
