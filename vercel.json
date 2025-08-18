@@ -3,7 +3,7 @@
   "version": 2,
   
   // Project name displayed in Vercel dashboard
-  "name": "ford-model-a-car-club",
+  "name": "car-club",
   
   // Alternative domain names/aliases for the deployment
   "alias": ["car-club"],
