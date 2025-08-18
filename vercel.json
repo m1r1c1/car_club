@@ -1,227 +1,135 @@
 {
-  // Vercel platform version - always use version 2 for current features
   "version": 2,
-  
-  // Project name displayed in Vercel dashboard
   "name": "car-club",
-  
-  // Alternative domain names/aliases for the deployment
   "alias": ["car-club"],
-  
-  // Makes the deployment publicly accessible (not behind authentication)
   "public": true,
-  
-  // GitHub integration settings for automatic deployments
   "github": {
-    // Enables automatic deployments when code is pushed to repository
     "enabled": true,
-    // Automatically creates deployment aliases from branch names
     "autoAlias": true
   },
-  
-  // Vercel regions where the site will be deployed for global performance
-  // iad1 = Washington D.C. (East Coast), sfo1 = San Francisco (West Coast)
   "regions": ["iad1", "sfo1"],
-  
-  // Build configuration - tells Vercel how to handle different file types
   "builds": [
     {
-      // Handle all HTML files using the static file builder
       "src": "**/*.html",
       "use": "@vercel/static"
     },
     {
-      // Handle all CSS stylesheet files as static assets
       "src": "**/*.css",
       "use": "@vercel/static"
     },
     {
-      // Handle all JavaScript files as static assets (no server-side processing)
       "src": "**/*.js",
       "use": "@vercel/static"
     },
     {
-      // Handle all image file formats as static assets
       "src": "**/*.{jpg,jpeg,png,gif,svg,ico,webp}",
       "use": "@vercel/static"
     },
     {
-      // Handle all web font file formats as static assets
       "src": "**/*.{woff,woff2,ttf,eot}",
       "use": "@vercel/static"
     }
   ],
-  
-  // URL routing configuration - maps incoming URLs to actual files
   "routes": [
     {
-      // Root URL "/" serves the main index.html file
       "src": "/",
       "dest": "/index.html"
     },
     {
-      // Clean URL "/about" serves about.html without showing .html extension
       "src": "/about",
       "dest": "/about.html"
     },
     {
-      // Clean URL "/events" serves events.html for club events page
       "src": "/events",
       "dest": "/events.html"
     },
     {
-      // Clean URL "/gallery" serves gallery.html for photo gallery
       "src": "/gallery",
       "dest": "/gallery.html"
     },
     {
-      // Clean URL "/membership" serves membership.html for signup forms
       "src": "/membership",
       "dest": "/membership.html"
     },
     {
-      // Clean URL "/contact" serves contact.html for contact information
       "src": "/contact",
       "dest": "/contact.html"
     },
     {
-      // Clean URL "/resources" serves resources.html for club resources/links
       "src": "/resources",
       "dest": "/resources.html"
     },
     {
-      // Fallback rule - serves any other requested file as-is
       "src": "/(.*)",
       "dest": "/$1"
     }
   ],
-  
-  // HTTP headers configuration for security and performance
   "headers": [
     {
-      // Security headers applied to all pages and assets
       "source": "/(.*)",
       "headers": [
         {
-          // Prevents browsers from guessing content types, reducing XSS risks
           "key": "X-Content-Type-Options",
           "value": "nosniff"
         },
         {
-          // Prevents the site from being embedded in frames (clickjacking protection)
           "key": "X-Frame-Options",
           "value": "DENY"
         },
         {
-          // Enables browser's built-in XSS protection with blocking mode
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
         },
         {
-          // Controls how much referrer information is shared when navigating away
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
         },
         {
-          // Disables browser permissions for camera, microphone, and location
           "key": "Permissions-Policy",
           "value": "camera=(), microphone=(), geolocation=()"
         }
       ]
     },
     {
-      // Aggressive caching for CSS and JavaScript files (1 year)
       "source": "/(.*)\\.(css|js)",
       "headers": [
         {
-          // Cache for 1 year (31536000 seconds) since these files rarely change
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
         }
       ]
     },
     {
-      // Aggressive caching for image files (1 year)
-      "source": "/(.*)\\.(jpg|jpeg|png|gif|svg|ico|webp)",
+      "source": "/(.*)\\.(jpg|jpeg|png|gif|svg,ico|webp)",
       "headers": [
         {
-          // Cache images for 1 year to improve loading performance
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
         }
       ]
     },
     {
-      // Aggressive caching for font files (1 year)
       "source": "/(.*)\\.(woff|woff2|ttf|eot)",
       "headers": [
         {
-          // Cache fonts for 1 year since they never change once deployed
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
         }
       ]
     }
   ],
-  
-  // URL redirects for common alternative URLs
   "redirects": [
     {
-      // Redirect "/home" to root "/" for consistency
       "source": "/home",
       "destination": "/",
-      // Permanent redirect (301) tells search engines this is the canonical URL
       "permanent": true
     },
     {
-      // Redirect "/index" to root "/" for clean URLs
       "source": "/index",
       "destination": "/",
       "permanent": true
     }
   ],
-  
-  // URL rewrites for API routes (if you add backend functionality later)
-  "rewrites": [
-    {
-      // Preserve API routes structure for future backend integration
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ],
-  
-  // Serverless function configuration (for potential future backend features)
-  "functions": {
-    // If you add Node.js serverless functions, they'll use this runtime
-    "app/**/*.js": {
-      "runtime": "@vercel/node@1"
-    }
-  },
-  
-  // Environment variables available during build and runtime
-  "env": {
-    // Set production environment for any JavaScript that checks NODE_ENV
-    "NODE_ENV": "production"
-  },
-  
-  // Removes .html extensions from URLs automatically (e.g., /about instead of /about.html)
   "cleanUrls": true,
-  
-  // Removes trailing slashes from URLs for consistency (e.g., /about not /about/)
-  "trailingSlash": false,
-  
-  // No specific framework detection - treats as vanilla HTML/CSS/JS
-  "framework": null,
-  
-  // No package installation needed (no package.json dependencies)
-  "installCommand": null,
-  
-  // No build process required for static files
-  "buildCommand": null,
-  
-  // Serves files from the root directory
-  "outputDirectory": ".",
-  
-  // No development server command needed
-  "devCommand": null
+  "trailingSlash": false
 }
