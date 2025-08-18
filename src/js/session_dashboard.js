@@ -1,0 +1,4 @@
+function loadPageData() {
+    loadDashboardStats();
+    loadRecentActivity();
+}

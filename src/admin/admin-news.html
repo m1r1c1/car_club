@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper responsive behavior and SEO -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Management - Ford Model A Club Admin</title>
+    
+    <!-- Font imports for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS FILES -->
+    <link rel="stylesheet" href="styles.css">        <!-- Base styles -->
+    <link rel="stylesheet" href="admin.css">         <!-- Admin styles -->
+    <link rel="stylesheet" href="admin-news.css">    <!-- News-specific styles -->
+    
+    <!-- Supabase JavaScript Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- IMPORTANT: Load shared configuration first -->
+    <script src="config.js"></script>
+    <script src="session.js"></script>              <!-- Shared configuration -->
+    <script src="session_all"></script>              <!-- Shared configuration -->
+    <script src="session_other"></script>              <!-- Shared configuration -->
+    
+</head>
+<body>
+    <!-- Admin header with navigation -->
+    <header class="admin-header">
+        <div class="container">
+            <nav class="admin-nav">
+                <a href="admin-dashboard.html" class="admin-logo">
+                    <i class="fas fa-car-side"></i>
+                    <span>Club Admin</span>
+                </a>
+                <div class="breadcrumb">
+                    <a href="admin-dashboard.html">Dashboard</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>News Management</span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main admin content area -->
+    <div class="container">
+        <div class="admin-main">
+            <!-- Page header with title and actions -->
+            <div class="page-header">
+                <h1 class="page-title">News Management</h1>
+                <div>
+                    <button class="btn btn-primary" onclick="showAddNewsModal()">
+                        <i class="fas fa-plus"></i> Add News Article
+                    </button>
+                    <button class="btn btn-info" onclick="exportNews()">
+                        <i class="fas fa-download"></i> Export List
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Filter controls for news articles -->
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="featuredFilter">Featured Status:</label>
+                    <select id="featuredFilter" onchange="filterNews()">
+                        <option value="">All Articles</option>
+                        <option value="true">Featured Articles</option>
+                        <option value="false">Regular Articles</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="dateRangeFilter">Date Range:</label>
+                    <select id="dateRangeFilter" onchange="filterNews()">
+                        <option value="">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="this_week">This Week</option>
+                        <option value="this_month">This Month</option>
+                        <option value="last_month">Last Month</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="authorFilter">Author:</label>
+                    <select id="authorFilter" onchange="filterNews()">
+                        <option value="">All Authors</option>
+                        <!-- Authors will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchFilter">Search:</label>
+                    <input type="text" id="searchFilter" placeholder="Title or content..." onkeyup="filterNews()">
+                </div>
+            </div>
+            
+            <!-- News content area -->
+            <div id="newsContent">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit News Modal -->
+    <div id="newsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="newsModalTitle">Add News Article</h3>
+                <button class="modal-close" onclick="closeModal('newsModal')">&times;</button>
+            </div>
+            
+            <form id="newsForm" onsubmit="saveNews(event)">
+                <input type="hidden" id="newsId" value="">
+                
+                <!-- Article title -->
+                <div class="form-group">
+                    <label for="newsTitle">Article Title *</label>
+                    <input type="text" id="newsTitle" name="title" required maxlength="255" 
+                           placeholder="Enter article title">
+                </div>
+                
+                <!-- Author and publish date -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newsAuthor">Author</label>
+                        <input type="text" id="newsAuthor" name="author" maxlength="100" 
+                               placeholder="Author name (optional)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="publishDate">Publish Date</label>
+                        <input type="date" id="publishDate" name="publish_date">
+                    </div>
+                </div>
+                
+                <!-- Featured status -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="isFeatured" name="is_featured" value="true">
+                        Mark as Featured Article
+                        <small class="form-help">Featured articles appear prominently on the website</small>
+                    </label>
+                </div>
+                
+                <!-- Article content -->
+                <div class="form-group">
+                    <label for="newsContent">Article Content *</label>
+                    <textarea id="newsContent" name="content" rows="12" required 
+                              placeholder="Enter the full article content..."></textarea>
+                    <small class="form-help">You can use line breaks to separate paragraphs</small>
+                </div>
+                
+                <!-- Form action buttons -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('newsModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Article
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- News Details Modal -->
+    <div id="newsDetailsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="newsDetailsModalTitle">Article Details</h3>
+                <button class="modal-close" onclick="closeModal('newsDetailsModal')">&times;</button>
+            </div>
+            
+            <div id="newsDetails" class="news-details">
+                <!-- News details will be populated here -->
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="btn btn-warning" onclick="closeModal('newsDetailsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for news management functionality -->
+    <script>
+        // ===== GLOBAL VARIABLES =====
+        let supabase = initializeSupabase(); // Initialize Supabase client
+        let allNews = []; // Store all news articles for filtering
+        let currentEditingNewsId = null; // Track which article is being edited
+        let availableAuthors = []; // Store unique authors for filter dropdown
+
+        // ===== NEWS MANAGEMENT FUNCTIONS =====
+        
+        /**
+         * Function to load all news articles from the database
+         * Handles both real database connection and demo mode
+         */
+        async function loadNews() {
+            const container = document.getElementById('newsContent');
+            
+            try {
+                // Check if Supabase is configured, if not show demo data
+                if (!isSupabaseConfigured()) {
+                    // Demo news data for testing when database is not configured
+                    allNews = [
+                        {
+                            id: 1,
+                            title: 'Welcome to Our New Website!',
+                            content: 'We are excited to announce the launch of our brand new Ford Model A Club website! This modern platform will help us stay connected and share our passion for these classic automobiles.\n\nThe new site features an improved event calendar, member directory, and photo galleries. We hope you enjoy exploring all the new features.',
+                            author: 'Club President',
+                            publish_date: '2025-08-15',
+                            is_featured: true,
+                            created_at: '2025-08-15T10:00:00'
+                        },
+                        {
+                            id: 2,
+                            title: 'Annual Car Show Registration Now Open',
+                            content: 'Registration is now open for our annual Ford Model A Car Show! This year\'s event promises to be our biggest yet, with participants expected from across the region.\n\nEarly bird registration is available until September 1st with discounted entry fees. Don\'t miss this opportunity to showcase your restored Model A and meet fellow enthusiasts.',
+                            author: 'Event Coordinator',
+                            publish_date: '2025-08-10',
+                            is_featured: true,
+                            created_at: '2025-08-10T14:30:00'
+                        },
+                        {
+                            id: 3,
+                            title: 'Technical Workshop: Engine Restoration Tips',
+                            content: 'Last weekend\'s technical workshop on engine restoration was a huge success! Members shared valuable tips and techniques for maintaining and restoring Model A engines.\n\nKey topics covered included carburetor adjustment, timing procedures, and common troubleshooting techniques. Thanks to all who attended and shared their expertise.',
+                            author: 'Technical Director',
+                            publish_date: '2025-08-05',
+                            is_featured: false,
+                            created_at: '2025-08-05T16:20:00'
+                        },
+                        {
+                            id: 4,
+                            title: 'Member Spotlight: John\'s 1929 Tudor Restoration',
+                            content: 'This month we\'re featuring club member John Thompson and his beautifully restored 1929 Model A Tudor Sedan. John spent three years meticulously restoring this classic, and the results are stunning.\n\nThe restoration included a complete engine rebuild, new upholstery, and a fresh paint job in the original Washington Blue. John\'s attention to detail and dedication to authenticity make this car a true showpiece.',
+                            author: 'Newsletter Editor',
+                            publish_date: '2025-07-28',
+                            is_featured: false,
+                            created_at: '2025-07-28T09:15:00'
+                        }
+                    ];
+                    populateAuthors(allNews);
+                    displayNews(allNews);
+                    return;
+                }
+                
+                // Fetch news articles from Supabase database ordered by publish date (newest first)
+                const { data: news, error } = await supabase
+                    .from('club_news')
+                    .select('*')
+                    .order('publish_date', { ascending: false });
+                
+                // Handle any database errors
+                if (error) throw error;
+                
+                // Store news globally, populate authors, and display them
+                allNews = news || [];
+                populateAuthors(allNews);
+                displayNews(allNews);
+                
+            } catch (error) {
+                console.error('Error loading news:', error);
+                container.innerHTML = '<div class="message error">Error loading news articles. Please try again.</div>';
+            }
+        }
+        
+        /**
+         * Function to populate the authors dropdown with unique authors
+         * @param {Array} newsArticles - Array of news articles to extract authors from
+         */
+        function populateAuthors(newsArticles) {
+            // Extract unique authors from news articles (excluding null/empty values)
+            availableAuthors = [...new Set(newsArticles
+                .map(article => article.author)
+                .filter(author => author && author.trim() !== '')
+            )].sort();
+            
+            const authorFilter = document.getElementById('authorFilter');
+            
+            // Clear existing options except "All Authors"
+            while (authorFilter.children.length > 1) {
+                authorFilter.removeChild(authorFilter.lastChild);
+            }
+            
+            // Add unique authors to the filter dropdown
+            availableAuthors.forEach(author => {
+                const option = document.createElement('option');
+                option.value = author;
+                option.textContent = author;
+                authorFilter.appendChild(option);
+            });
+        }
+        
+        /**
+         * Function to display news articles in a table format
+         * @param {Array} newsArticles - Array of news article objects to display
+         */
+        function displayNews(newsArticles) {
+            const container = document.getElementById('newsContent');
+            
+            // Check if there are articles to display
+            if (newsArticles && newsArticles.length > 0) {
+                let tableHTML = `
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Publish Date</th>
+                                    <th>Featured</th>
+                                    <th>Content Preview</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Loop through each article and create table rows
+                newsArticles.forEach(article => {
+                    const publishDate = article.publish_date ? 
+                        new Date(article.publish_date).toLocaleDateString() : 
+                        'Not set';
+                    
+                    // Create content preview (first 100 characters)
+                    const contentPreview = article.content ? 
+                        truncateText(article.content, 100) : 
+                        'No content';
+                    
+                    // Format featured status with appropriate styling
+                    const featuredStatus = article.is_featured ? 
+                        '<span class="featured-badge">Featured</span>' : 
+                        '<span class="regular-badge">Regular</span>';
+                    
+                    // Determine if article is featured for row styling
+                    const articleRowClass = article.is_featured ? 'featured-article' : '';
+                    
+                    tableHTML += `
+                        <tr class="${articleRowClass}">
+                            <td>
+                                <strong>${article.title}</strong>
+                                ${article.is_featured ? '<i class="fas fa-star featured-icon" title="Featured Article"></i>' : ''}
+                            </td>
+                            <td>${article.author || 'Unknown'}</td>
+                            <td>${publishDate}</td>
+                            <td>${featuredStatus}</td>
+                            <td class="content-preview">${contentPreview}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" onclick="viewNews(${article.id})" title="View Article">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="editNews(${article.id})" title="Edit Article">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-warning" onclick="toggleFeatured(${article.id}, ${!article.is_featured})" title="${article.is_featured ? 'Unfeature' : 'Feature'} Article">
+                                        <i class="fas fa-star"></i> ${article.is_featured ? 'Unfeature' : 'Feature'}
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteNews(${article.id})" title="Delete Article">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += '</tbody></table></div>';
+                container.innerHTML = tableHTML;
+            } else {
+                // Display message when no articles match the filter criteria
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 3rem;">
+                        <i class="fas fa-newspaper" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem;">No News Articles Found</h3>
+                        <p style="color: #666; margin-bottom: 2rem;">No articles match your current filter criteria.</p>
+                        <button class="btn btn-primary" onclick="clearFilters()">
+                            <i class="fas fa-filter"></i> Clear Filters
+                        </button>
+                        <button class="btn btn-secondary" onclick="showAddNewsModal()" style="margin-left: 1rem;">
+                            <i class="fas fa-plus"></i> Add First Article
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        /**
+         * Function to filter news articles based on selected criteria
+         * Applies multiple filters simultaneously
+         */
+        function filterNews() {
+            const featuredFilter = document.getElementById('featuredFilter').value;
+            const dateRangeFilter = document.getElementById('dateRangeFilter').value;
+            const authorFilter = document.getElementById('authorFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let filteredNews = allNews.filter(article => {
+                // Filter by featured status
+                if (featuredFilter && article.is_featured.toString() !== featuredFilter) return false;
+                
+                // Filter by author
+                if (authorFilter && article.author !== authorFilter) return false;
+                
+                // Filter by date range
+                if (dateRangeFilter && article.publish_date) {
+                    const articleDate = new Date(article.publish_date);
+                    const now = new Date();
+                    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const startOfWeek = new Date(startOfToday);
+                    startOfWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                    
+                    switch (dateRangeFilter) {
+                        case 'today':
+                            if (articleDate.toDateString() !== startOfToday.toDateString()) return false;
+                            break;
+                        case 'this_week':
+                            if (articleDate < startOfWeek) return false;
+                            break;
+                        case 'this_month':
+                            if (articleDate < startOfMonth) return false;
+                            break;
+                        case 'last_month':
+                            if (articleDate < startOfLastMonth || articleDate > endOfLastMonth) return false;
+                            break;
+                    }
+                }
+                
+                // Search filter (title or content)
+                if (searchFilter) {
+                    const title = article.title.toLowerCase();
+                    const content = (article.content || '').toLowerCase();
+                    if (!title.includes(searchFilter) && !content.includes(searchFilter)) return false;
+                }
+                
+                return true;
+            });
+            
+            displayNews(filteredNews);
+        }
+        
+        /**
+         * Function to clear all applied filters
+         */
+        function clearFilters() {
+            document.getElementById('featuredFilter').value = '';
+            document.getElementById('dateRangeFilter').value = '';
+            document.getElementById('authorFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            displayNews(allNews);
+        }
+        
+        /**
+         * Function to show the add news modal
+         */
+        function showAddNewsModal() {
+            const modal = document.getElementById('newsModal');
+            const modalTitle = document.getElementById('newsModalTitle');
+            const form = document.getElementById('newsForm');
+            
+            // Reset form and set title for new article
+            form.reset();
+            document.getElementById('newsId').value = '';
+            modalTitle.textContent = 'Add News Article';
+            currentEditingNewsId = null;
+            
+            // Set default publish date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('publishDate').value = today;
+            
+            modal.classList.add('show');
+        }
+        
+        /**
+         * Function to edit an existing news article
+         * @param {number} newsId - ID of the article to edit
+         */
+        async function editNews(newsId) {
+            // Find article in demo data or fetch from database
+            if (!isSupabaseConfigured()) {
+                const article = allNews.find(n => n.id === newsId);
+                if (article) {
+                    populateNewsForm(article);
+                }
+                return;
+            }
+            
+            try {
+                // Fetch article data from database
+                const { data: article, error } = await supabase
+                    .from('club_news')
+                    .select('*')
+                    .eq('id', newsId)
+                    .single();
+                
+                if (error) throw error;
+                
+                populateNewsForm(article);
+                
+            } catch (error) {
+                console.error('Error loading news article for editing:', error);
+                alert('Error loading article details. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to populate the news form with existing data
+         * @param {Object} article - News article object to populate form with
+         */
+        function populateNewsForm(article) {
+            const modal = document.getElementById('newsModal');
+            const modalTitle = document.getElementById('newsModalTitle');
+            
+            // Set modal title and current editing ID
+            modalTitle.textContent = 'Edit News Article';
+            currentEditingNewsId = article.id;
+            
+            // Populate form fields with article data
+            document.getElementById('newsId').value = article.id;
+            document.getElementById('newsTitle').value = article.title;
+            document.getElementById('newsAuthor').value = article.author || '';
+            document.getElementById('publishDate').value = article.publish_date || '';
+            document.getElementById('isFeatured').checked = article.is_featured;
+            document.getElementById('newsContent').value = article.content;
+            
+            modal.classList.add('show');
+        }
+        
+        /**
+         * Function to save news article (both create and update)
+         * @param {Event} event - Form submission event
+         */
+        async function saveNews(event) {
+            event.preventDefault();
+            
+            const form = document.getElementById('newsForm');
+            const formData = new FormData(form);
+            
+            // Build article object from form data
+            const articleData = {
+                title: formData.get('title'),
+                content: formData.get('content'),
+                author: formData.get('author') || null,
+                publish_date: formData.get('publish_date') || null,
+                is_featured: formData.has('is_featured')
+            };
+            
+            // Handle demo mode
+            if (!isSupabaseConfigured()) {
+                if (currentEditingNewsId) {
+                    // Update existing article in demo data
+                    const articleIndex = allNews.findIndex(n => n.id === currentEditingNewsId);
+                    if (articleIndex !== -1) {
+                        allNews[articleIndex] = { ...allNews[articleIndex], ...articleData };
+                    }
+                    alert('Demo mode - Article updated successfully!');
+                } else {
+                    // Add new article to demo data
+                    const newArticle = {
+                        id: Math.max(...allNews.map(n => n.id)) + 1,
+                        ...articleData,
+                        created_at: new Date().toISOString()
+                    };
+                    allNews.unshift(newArticle); // Add to beginning for newest first
+                    alert('Demo mode - Article added successfully!');
+                }
+                closeModal('newsModal');
+                populateAuthors(allNews);
+                displayNews(allNews);
+                return;
+            }
+            
+            try {
+                let result;
+                
+                // Determine if this is an update or create operation
+                if (currentEditingNewsId) {
+                    // Update existing article
+                    result = await supabase
+                        .from('club_news')
+                        .update(articleData)
+                        .eq('id', currentEditingNewsId);
+                } else {
+                    // Create new article
+                    result = await supabase
+                        .from('club_news')
+                        .insert([articleData]);
+                }
+                
+                // Check for errors in the database operation
+                if (result.error) throw result.error;
+                
+                // Close modal and reload news
+                closeModal('newsModal');
+                
+                // Show success message and reload news list
+                const container = document.getElementById('newsContent');
+                const action = currentEditingNewsId ? 'updated' : 'created';
+                container.innerHTML = `<div class="message success">Article ${action} successfully!</div>`;
+                
+                setTimeout(() => {
+                    loadNews();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error saving news article:', error);
+                alert('Error saving article. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to toggle featured status of an article
+         * @param {number} newsId - ID of the article to toggle
+         * @param {boolean} newFeaturedStatus - New featured status
+         */
+        async function toggleFeatured(newsId, newFeaturedStatus) {
+            const action = newFeaturedStatus ? 'feature' : 'unfeature';
+            
+            if (!confirm(`Are you sure you want to ${action} this article?`)) {
+                return;
+            }
+            
+            // Handle demo mode
+            if (!isSupabaseConfigured()) {
+                const article = allNews.find(n => n.id === newsId);
+                if (article) {
+                    article.is_featured = newFeaturedStatus;
+                    alert(`Demo mode - Article ${action}d successfully!`);
+                    displayNews(allNews);
+                }
+                return;
+            }
+            
+            try {
+                // Update featured status in database
+                const { error } = await supabase
+                    .from('club_news')
+                    .update({ is_featured: newFeaturedStatus })
+                    .eq('id', newsId);
+                
+                if (error) throw error;
+                
+                // Show success message and reload news
+                const container = document.getElementById('newsContent');
+                container.innerHTML = `<div class="message success">Article ${action}d successfully!</div>`;
+                
+                setTimeout(() => {
+                    loadNews();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error updating featured status:', error);
+                alert('Error updating article status. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to delete a news article
+         * @param {number} newsId - ID of the article to delete
+         */
+        async function deleteNews(newsId) {
+            if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
+                return;
+            }
+            
+            // Handle demo mode
+            if (!isSupabaseConfigured()) {
+                allNews = allNews.filter(n => n.id !== newsId);
+                alert('Demo mode - Article deleted successfully!');
+                populateAuthors(allNews);
+                displayNews(allNews);
+                return;
+            }
+            
+            try {
+                // Delete article from database
+                const { error } = await supabase
+                    .from('club_news')
+                    .delete()
+                    .eq('id', newsId);
+                
+                if (error) throw error;
+                
+                // Show success message and reload news
+                const container = document.getElementById('newsContent');
+                container.innerHTML = '<div class="message success">Article deleted successfully!</div>';
+                
+                setTimeout(() => {
+                    loadNews();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error deleting news article:', error);
+                alert('Error deleting article. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to view news article details in a modal
+         * @param {number} newsId - ID of the article to view
+         */
+        async function viewNews(newsId) {
+            // Handle demo mode
+            if (!isSupabaseConfigured()) {
+                const article = allNews.find(n => n.id === newsId);
+                if (article) {
+                    showNewsDetails(article);
+                }
+                return;
+            }
+            
+            try {
+                // Fetch article data from database
+                const { data: article, error } = await supabase
+                    .from('club_news')
+                    .select('*')
+                    .eq('id', newsId)
+                    .single();
+                
+                if (error) throw error;
+                
+                showNewsDetails(article);
+                
+            } catch (error) {
+                console.error('Error loading news article details:', error);
+                alert('Error loading article details. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to display news article details in modal
+         * @param {Object} article - News article object to display
+         */
+        function showNewsDetails(article) {
+            const detailsDiv = document.getElementById('newsDetails');
+            const modalTitle = document.getElementById('newsDetailsModalTitle');
+            
+            modalTitle.textContent = `${article.title} - Article Details`;
+            
+            const publishDate = article.publish_date ? 
+                new Date(article.publish_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }) : 'Not set';
+            
+            const createdDate = new Date(article.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Format content with line breaks preserved
+            const formattedContent = article.content.replace(/\n/g, '<br>');
+            
+            detailsDiv.innerHTML = `
+                <h4>Article Information</h4>
+                <p><strong>Title:</strong> ${article.title}</p>
+                <p><strong>Author:</strong> ${article.author || 'Not specified'}</p>
+                <p><strong>Publish Date:</strong> ${publishDate}</p>
+                <p><strong>Featured Status:</strong> ${article.is_featured ? 
+                    '<span class="featured-badge">Featured Article</span>' : 
+                    '<span class="regular-badge">Regular Article</span>'}</p>
+                
+                <h4>Article Content</h4>
+                <div class="article-content">${formattedContent}</div>
+                
+                <h4>Administrative Information</h4>
+                <p><strong>Created:</strong> ${createdDate}</p>
+                <p><strong>Word Count:</strong> ${article.content.split(' ').length} words</p>
+            `;
+            
+            document.getElementById('newsDetailsModal').classList.add('show');
+        }
+        
+        /**
+         * Function to export news articles list to CSV
+         */
+        function exportNews() {
+            if (!isSupabaseConfigured()) {
+                alert('Demo mode - would export news articles list to CSV');
+                return;
+            }
+            
+            // Get current filtered articles
+            const featuredFilter = document.getElementById('featuredFilter').value;
+            const dateRangeFilter = document.getElementById('dateRangeFilter').value;
+            const authorFilter = document.getElementById('authorFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let articlesToExport = allNews;
+            
+            // Apply same filters as display
+            if (featuredFilter || dateRangeFilter || authorFilter || searchFilter) {
+                articlesToExport = allNews.filter(article => {
+                    if (featuredFilter && article.is_featured.toString() !== featuredFilter) return false;
+                    if (authorFilter && article.author !== authorFilter) return false;
+                    
+                    // Apply date range filter
+                    if (dateRangeFilter && article.publish_date) {
+                        const articleDate = new Date(article.publish_date);
+                        const now = new Date();
+                        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        const startOfWeek = new Date(startOfToday);
+                        startOfWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
+                        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                        
+                        switch (dateRangeFilter) {
+                            case 'today':
+                                if (articleDate.toDateString() !== startOfToday.toDateString()) return false;
+                                break;
+                            case 'this_week':
+                                if (articleDate < startOfWeek) return false;
+                                break;
+                            case 'this_month':
+                                if (articleDate < startOfMonth) return false;
+                                break;
+                            case 'last_month':
+                                if (articleDate < startOfLastMonth || articleDate > endOfLastMonth) return false;
+                                break;
+                        }
+                    }
+                    
+                    // Apply search filter
+                    if (searchFilter) {
+                        const title = article.title.toLowerCase();
+                        const content = (article.content || '').toLowerCase();
+                        if (!title.includes(searchFilter) && !content.includes(searchFilter)) return false;
+                    }
+                    
+                    return true;
+                });
+            }
+            
+            // Create CSV content with proper headers
+            const headers = [
+                'Title', 'Author', 'Publish Date', 'Featured', 'Content Preview', 'Word Count', 'Created Date'
+            ];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            // Add each article as a CSV row
+            articlesToExport.forEach(article => {
+                const contentPreview = article.content ? 
+                    article.content.substring(0, 100).replace(/"/g, '""') : '';
+                const wordCount = article.content ? article.content.split(' ').length : 0;
+                
+                const row = [
+                    `"${article.title}"`,
+                    `"${article.author || ''}"`,
+                    article.publish_date || '',
+                    article.is_featured ? 'Yes' : 'No',
+                    `"${contentPreview}..."`,
+                    wordCount,
+                    new Date(article.created_at).toLocaleDateString()
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Download CSV file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `club-news-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // ===== MODAL MANAGEMENT FUNCTIONS =====
+        
+        /**
+         * Function to close modals
+         * @param {string} modalId - ID of the modal to close
+         */
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            
+            // Reset editing state when closing news modal
+            if (modalId === 'newsModal') {
+                currentEditingNewsId = null;
+            }
+        }
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+                
+                // Reset editing state if news modal was closed
+                if (event.target.id === 'newsModal') {
+                    currentEditingNewsId = null;
+                }
+            }
+        });
+
+        // ===== UTILITY FUNCTIONS =====
+        
+        /**
+         * Function to truncate text to specified length
+         * @param {string} text - Text to truncate
+         * @param {number} maxLength - Maximum length before truncation
+         * @returns {string} Truncated text with ellipsis if needed
+         */
+        function truncateText(text, maxLength) {
+            if (!text || text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+        
+        /**
+         * Function to get news statistics for dashboard or reporting
+         * @returns {Object} Statistics object with article counts
+         */
+        function getNewsStats() {
+            const stats = {
+                total: allNews.length,
+                featured: allNews.filter(n => n.is_featured).length,
+                regular: allNews.filter(n => !n.is_featured).length,
+                byAuthor: {},
+                totalWordCount: allNews.reduce((sum, article) => 
+                    sum + (article.content ? article.content.split(' ').length : 0), 0)
+            };
+            
+            // Count articles by author
+            allNews.forEach(article => {
+                const author = article.author || 'Unknown';
+                stats.byAuthor[author] = (stats.byAuthor[author] || 0) + 1;
+            });
+            
+            console.log('News Statistics:', stats);
+            return stats;
+        }
+        
+        /**
+         * Function to validate news article form data
+         * @param {Object} articleData - Article data object to validate
+         * @returns {Object} Validation result with isValid boolean and errors array
+         */
+        function validateNewsData(articleData) {
+            const errors = [];
+            
+            // Check required fields
+            if (!articleData.title || articleData.title.trim().length === 0) {
+                errors.push('Article title is required');
+            }
+            
+            if (!articleData.content || articleData.content.trim().length === 0) {
+                errors.push('Article content is required');
+            }
+            
+            // Validate title length
+            if (articleData.title && articleData.title.length > 255) {
+                errors.push('Title must be 255 characters or less');
+            }
+            
+            // Validate author length if provided
+            if (articleData.author && articleData.author.length > 100) {
+                errors.push('Author name must be 100 characters or less');
+            }
+            
+            // Validate publish date if provided
+            if (articleData.publish_date) {
+                const publishDate = new Date(articleData.publish_date);
+                if (isNaN(publishDate.getTime())) {
+                    errors.push('Invalid publish date format');
+                }
+            }
+            
+            // Check content length (reasonable limit)
+            if (articleData.content && articleData.content.length > 50000) {
+                errors.push('Article content is too long (maximum 50,000 characters)');
+            }
+            
+            return {
+                isValid: errors.length === 0,
+                errors: errors
+            };
+        }
+        
+        /**
+         * Function to format article data for display purposes
+         * @param {Object} article - Raw article object from database
+         * @returns {Object} Formatted article object
+         */
+        function formatNewsData(article) {
+            return {
+                ...article,
+                formattedPublishDate: article.publish_date ? 
+                    new Date(article.publish_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'Not published',
+                formattedCreatedDate: new Date(article.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }),
+                wordCount: article.content ? article.content.split(' ').length : 0,
+                contentPreview: article.content ? truncateText(article.content, 150) : 'No content',
+                authorDisplay: article.author || 'Unknown Author'
+            };
+        }
+        
+        /**
+         * Function to count words in text
+         * @param {string} text - Text to count words in
+         * @returns {number} Word count
+         */
+        function countWords(text) {
+            if (!text || text.trim().length === 0) return 0;
+            return text.trim().split(/\s+/).length;
+        }
+
+        // ===== INITIALIZATION =====
+        
+        /**
+         * Initialize news management when DOM is loaded
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load news articles data from database or demo data
+            loadNews();
+            
+            // Set default publish date to today for new articles
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('publishDate').value = today;
+            
+            // Add form validation on submit
+            document.getElementById('newsForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = new FormData(this);
+                const articleData = {
+                    title: formData.get('title'),
+                    content: formData.get('content'),
+                    author: formData.get('author'),
+                    publish_date: formData.get('publish_date'),
+                    is_featured: formData.has('is_featured')
+                };
+                
+                // Validate form data
+                const validation = validateNewsData(articleData);
+                
+                if (!validation.isValid) {
+                    alert('Please fix the following errors:\n\n' + validation.errors.join('\n'));
+                    return;
+                }
+                
+                // If validation passes, proceed with save
+                saveNews(e);
+            });
+            
+            // Add word count functionality to content textarea
+            const contentTextarea = document.getElementById('newsContent');
+            const wordCountDisplay = document.createElement('small');
+            wordCountDisplay.className = 'word-count';
+            wordCountDisplay.style.display = 'block';
+            wordCountDisplay.style.marginTop = '0.5rem';
+            wordCountDisplay.style.color = '#666';
+            contentTextarea.parentNode.appendChild(wordCountDisplay);
+            
+            // Update word count as user types
+            contentTextarea.addEventListener('input', function() {
+                const wordCount = countWords(this.value);
+                wordCountDisplay.textContent = `Word count: ${wordCount}`;
+            });
+            
+            // Show configuration warning if needed
+            if (!isSupabaseConfigured()) {
+                console.warn('🔧 SETUP REQUIRED: Please configure your Supabase credentials.');
+                console.warn('📍 Look for SUPABASE_URL and SUPABASE_ANON_KEY variables and replace with your actual values.');
+            }
+            
+            console.log('📰 News Management page loaded successfully!');
+            console.log('🔗 Database connection:', isSupabaseConfigured() ? 'Configured' : 'Demo mode');
+        });
+    </script>
+</body>
+</html>

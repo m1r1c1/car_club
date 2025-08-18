@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper responsive behavior and SEO -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Join our Ford Model A car club for events, restoration tips, and community of vintage car enthusiasts">
+    <meta name="keywords" content="Ford Model A, vintage cars, car club, classic automobiles, restoration">
+    <title>Ford Model A Club - Classic Car Enthusiasts</title>
+    
+    <!-- Font imports for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS FILES -->
+    <link rel="stylesheet" href="styles.css">  <!-- Base styles first -->
+    <link rel="stylesheet" href="main.css">    <!-- Main website styles -->
+    
+    <!-- Supabase JavaScript Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- IMPORTANT: Load shared configuration first -->
+    <script src="config.js"></script>
+    
+</head>
+<body>
+    <!-- Include Header -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content Section (Newsletter specific content would go here) -->
+    <main class="main-content">
+        <div class="container">
+            <h1>Newsletter Page Content</h1>
+            <p>This is where your newsletter-specific content would go.</p>
+            <p>The header and footer are now loaded from separate files for easier maintenance.</p>
+        </div>
+    </main>
+
+    <!-- Include Footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- JavaScript for Supabase integration and interactive functionality -->
+    <script>
+        // ===== HTML INCLUDE FUNCTIONALITY =====
+        
+        /**
+         * Load external HTML files into placeholders
+         * This function provides a simple way to include header and footer files
+         */
+        async function loadHTMLIncludes() {
+            try {
+                // Load header
+                const headerResponse = await fetch('header.html');
+                if (headerResponse.ok) {
+                    const headerHTML = await headerResponse.text();
+                    document.getElementById('header-placeholder').innerHTML = headerHTML;
+                } else {
+                    console.error('Failed to load header.html');
+                }
+                
+                // Load footer
+                const footerResponse = await fetch('footer.html');
+                if (footerResponse.ok) {
+                    const footerHTML = await footerResponse.text();
+                    document.getElementById('footer-placeholder').innerHTML = footerHTML;
+                } else {
+                    console.error('Failed to load footer.html');
+                }
+            } catch (error) {
+                console.error('Error loading HTML includes:', error);
+            }
+        }
+
+        // ===== EXISTING MOBILE AND UI FUNCTIONS =====
+        
+        // Mobile menu toggle functionality
+        function toggleMobileMenu() {
+            const menu = document.querySelector('.nav-menu');
+            const button = document.querySelector('.mobile-menu-toggle');
+            
+            // Toggle active class to show/hide mobile menu
+            menu.classList.toggle('active');
+            
+            // Change hamburger icon to X when menu is open
+            const icon = button.querySelector('i');
+            if (menu.classList.contains('active')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        }
+
+        // Close mobile menu when clicking on a menu link
+        function setupMobileMenuClosing() {
+            document.querySelectorAll('.nav-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    const menu = document.querySelector('.nav-menu');
+                    const button = document.querySelector('.mobile-menu-toggle');
+                    const icon = button.querySelector('i');
+                    
+                    // Close menu and reset icon
+                    menu.classList.remove('active');
+                    icon.className = 'fas fa-bars';
+                });
+            });
+        }
+
+        // Show/hide Model A details based on ownership selection
+        function toggleModelADetails() {
+            const select = document.getElementById('modelAOwned');
+            const details = document.getElementById('modelADetails');
+            
+            if (select && details) {
+                // Show details section if user owns or is restoring a Model A
+                if (select.value === 'true' || select.value === 'restoring') {
+                    details.style.display = 'block';
+                    // Make fields required when visible
+                    const modelYear = document.getElementById('modelYear');
+                    const bodyStyle = document.getElementById('bodyStyle');
+                    if (modelYear) modelYear.required = true;
+                    if (bodyStyle) bodyStyle.required = true;
+                } else {
+                    details.style.display = 'none';
+                    // Remove required attribute when hidden
+                    const modelYear = document.getElementById('modelYear');
+                    const bodyStyle = document.getElementById('bodyStyle');
+                    if (modelYear) modelYear.required = false;
+                    if (bodyStyle) bodyStyle.required = false;
+                }
+            }
+        }
+
+        // Gallery modal functionality (placeholder for future implementation)
+        function openGalleryModal(imageTitle) {
+            // In a real implementation, this would open a modal with the full-size image
+            alert(`Opening gallery image: ${imageTitle}\n\nIn a full implementation, this would display a modal with the selected image and navigation controls.`);
+        }
+
+        // Smooth scrolling for navigation links
+        function setupSmoothScrolling() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        // Calculate offset to account for fixed header
+                        const header = document.querySelector('.header');
+                        const headerHeight = header ? header.offsetHeight : 0;
+                        const targetPosition = target.offsetTop - headerHeight - 20;
+                        
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        }
+
+        // Add scroll effect to header (darken when scrolled)
+        function setupHeaderScrollEffect() {
+            window.addEventListener('scroll', () => {
+                const header = document.querySelector('.header');
+                if (header) {
+                    if (window.scrollY > 100) {
+                        header.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                        header.style.backdropFilter = 'blur(10px)';
+                    } else {
+                        header.style.backgroundColor = '#ffffff';
+                        header.style.backdropFilter = 'none';
+                    }
+                }
+            });
+        }
+
+        // Form validation enhancements
+        function setupFormValidation() {
+            document.querySelectorAll('input[required], select[required]').forEach(field => {
+                field.addEventListener('invalid', function(e) {
+                    // Custom validation messages
+                    if (this.validity.valueMissing) {
+                        this.setCustomValidity('This field is required');
+                    } else if (this.validity.typeMismatch && this.type === 'email') {
+                        this.setCustomValidity('Please enter a valid email address');
+                    }
+                });
+                
+                field.addEventListener('input', function() {
+                    // Clear custom validation message when user starts typing
+                    this.setCustomValidity('');
+                });
+            });
+        }
+
+        // Statistics counter animation (runs when page loads)
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            
+            counters.forEach(counter => {
+                const targetText = counter.textContent;
+                const target = parseInt(targetText.replace('+', ''));
+                const increment = target / 50; // Animation duration roughly 50 frames
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.textContent = targetText; // Restore original text with +
+                        clearInterval(timer);
+                    } else {
+                        counter.textContent = Math.floor(current);
+                    }
+                }, 40); // Update every 40ms for smooth animation
+            });
+        }
+
+        // ===== PAGE INITIALIZATION =====
+        
+        // Initialize all content when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load header and footer first
+            await loadHTMLIncludes();
+            
+            // Set up event listeners after includes are loaded
+            setTimeout(() => {
+                setupMobileMenuClosing();
+                setupSmoothScrolling();
+                setupHeaderScrollEffect();
+                setupFormValidation();
+            }, 100); // Small delay to ensure DOM is updated
+            
+            // Set up form submission handler if form exists
+            const membershipForm = document.getElementById('membershipForm');
+            if (membershipForm) {
+                membershipForm.addEventListener('submit', handleMembershipSubmit);
+            }
+            
+            // Show configuration warning if needed
+            if (typeof isSupabaseConfigured === 'function' && !isSupabaseConfigured()) {
+                console.warn('🔧 SETUP REQUIRED: Please configure your Supabase credentials in the JavaScript section of this file.');
+                console.warn('📍 Look for SUPABASE_URL and SUPABASE_ANON_KEY variables and replace with your actual values.');
+                console.warn('📖 See the setup instructions for details on getting these values from your Supabase dashboard.');
+            }
+        });
+
+        // Run counter animation when page loads
+        window.addEventListener('load', () => {
+            // Delay animation slightly to ensure everything is rendered
+            setTimeout(animateCounters, 500);
+        });
+
+        // ===== UTILITY FUNCTIONS =====
+        
+        // Function to format dates consistently across the application
+        function formatEventDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric' 
+            }).toUpperCase();
+        }
+        
+        // Function to format times consistently across the application
+        function formatEventTime(timeString) {
+            if (!timeString) return 'Time TBD';
+            const time = new Date(`1970-01-01T${timeString}`);
+            return time.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit', 
+                hour12: true 
+            });
+        }
+        
+        // Function to handle errors consistently across the application
+        function handleError(error, context) {
+            console.error(`Error in ${context}:`, error);
+            
+            // In a production environment, you might want to:
+            // - Log errors to a service like Sentry
+            // - Show user-friendly error messages
+            // - Provide fallback content
+            
+            return `<div class="error-message">Unable to load ${context}. Please refresh the page or try again later.</div>`;
+        }
+        
+        // Function to show loading state while data is being fetched
+        function showLoadingState(container, message = 'Loading...') {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 1rem; color: #666;">${message}</p>
+                </div>
+            `;
+        }
+        
+        // Function to validate email addresses
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Handle membership form submission (placeholder function)
+        function handleMembershipSubmit(event) {
+            event.preventDefault();
+            console.log('Membership form submitted');
+            // Add your form submission logic here
+        }
+        
+        // Log successful initialization
+        console.log('🚗 Ford Model A Club website loaded successfully!');
+        console.log('🔗 Database connection:', typeof isSupabaseConfigured === 'function' && isSupabaseConfigured() ? 'Configured' : 'Demo mode');
+    </script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper responsive behavior and SEO -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members Management - Ford Model A Club Admin</title>
+    
+    <!-- Font imports for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS FILES -->
+    <link rel="stylesheet" href="styles.css">     <!-- Base styles -->
+    <link rel="stylesheet" href="admin.css">      <!-- Admin styles -->
+    
+    <!-- Supabase JavaScript Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- IMPORTANT: Load shared configuration first -->
+    <script src="config.js"></script>
+    <script src="session.js"></script>              <!-- Shared configuration -->
+    <script src="session_all"></script>              <!-- Shared configuration -->
+    <script src="session_other"></script>              <!-- Shared configuration -->
+    
+</head>
+<body>
+    <!-- Admin header with navigation -->
+    <header class="admin-header">
+        <div class="container">
+            <nav class="admin-nav">
+                <a href="admin-dashboard.html" class="admin-logo">
+                    <i class="fas fa-car-side"></i>
+                    <span>Club Admin</span>
+                </a>
+                <div class="breadcrumb">
+                    <a href="admin-dashboard.html">Dashboard</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Members Management</span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main admin content area -->
+    <div class="container">
+        <div class="admin-main">
+            <!-- Page header with title and actions -->
+            <div class="page-header">
+                <h1 class="page-title">Members Management</h1>
+                <div>
+                    <button class="btn btn-info" onclick="exportMembers()">
+                        <i class="fas fa-download"></i> Export List
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Filter controls -->
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="statusFilter">Status:</label>
+                    <select id="statusFilter" onchange="filterMembers()">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="membershipFilter">Type:</label>
+                    <select id="membershipFilter" onchange="filterMembers()">
+                        <option value="">All Types</option>
+                        <option value="individual">Individual</option>
+                        <option value="family">Family</option>
+                        <option value="student">Student</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="modelAFilter">Model A Owner:</label>
+                    <select id="modelAFilter" onchange="filterMembers()">
+                        <option value="">All Members</option>
+                        <option value="true">Owns Model A</option>
+                        <option value="false">Does Not Own</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchFilter">Search:</label>
+                    <input type="text" id="searchFilter" placeholder="Name or email..." onkeyup="filterMembers()">
+                </div>
+            </div>
+            
+            <!-- Members content area -->
+            <div id="membersContent">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Details Modal -->
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="memberModalTitle">Member Details</h3>
+                <button class="modal-close" onclick="closeModal('memberModal')">&times;</button>
+            </div>
+            
+            <div id="memberDetails" class="member-details">
+                <!-- Member details will be populated here -->
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="btn btn-warning" onclick="closeModal('memberModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for members management functionality -->
+    <script>
+        // ===== SUPABASE CONFIGURATION =====
+        let supabase = initializeSupabase();
+
+        // ===== MEMBERS MANAGEMENT FUNCTIONS =====
+        
+        // Function to load members for management
+        async function loadMembers() {
+            const container = document.getElementById('membersContent');
+            
+            try {
+                if (!isSupabaseConfigured()) {
+                    // Show demo members if database not configured
+                    allMembers = [
+                        {
+                            id: 1, first_name: 'John', last_name: 'Doe', email: 'john@email.com',
+                            phone: '555-0123', membership_type: 'individual', model_a_owned: true,
+                            model_year: '1929', body_style: 'Tudor Sedan', experience_level: 'intermediate',
+                            status: 'pending', join_date: '2025-08-15', created_at: '2025-08-15T10:00:00'
+                        },
+                        {
+                            id: 2, first_name: 'Jane', last_name: 'Smith', email: 'jane@email.com',
+                            phone: '555-0124', membership_type: 'family', model_a_owned: false,
+                            model_year: null, body_style: null, experience_level: 'beginner',
+                            status: 'active', join_date: '2025-07-20', created_at: '2025-07-20T14:30:00'
+                        }
+                    ];
+                    displayMembers(allMembers);
+                    return;
+                }
+                
+                // Get all members from database
+                const { data: members, error } = await supabase
+                    .from('members')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                allMembers = members || [];
+                displayMembers(allMembers);
+                
+            } catch (error) {
+                console.error('Error loading members:', error);
+                container.innerHTML = '<div class="message error">Error loading members. Please try again.</div>';
+            }
+        }
+        
+        // Function to display members in table format
+        function displayMembers(members) {
+            const container = document.getElementById('membersContent');
+            
+            if (members && members.length > 0) {
+                let tableHTML = `
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Type</th>
+                                    <th>Model A</th>
+                                    <th>Status</th>
+                                    <th>Applied</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                members.forEach(member => {
+                    const joinDate = new Date(member.join_date || member.created_at).toLocaleDateString();
+                    const modelAStatus = member.model_a_owned ? 
+                        `<span style="color: green;">Yes</span>${member.model_year ? ` (${member.model_year})` : ''}` : 
+                        '<span style="color: #666;">No</span>';
+                    
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${member.first_name} ${member.last_name}</strong></td>
+                            <td>${member.email}</td>
+                            <td>${member.phone || 'Not provided'}</td>
+                            <td style="text-transform: capitalize;">${member.membership_type}</td>
+                            <td>${modelAStatus}</td>
+                            <td><span class="status-badge ${member.status}">${member.status}</span></td>
+                            <td>${joinDate}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    ${member.status === 'pending' ? 
+                                        `<button class="btn btn-sm btn-success" onclick="updateMemberStatus(${member.id}, 'active')" title="Approve Member">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>` : ''}
+                                    <button class="btn btn-sm btn-info" onclick="viewMember(${member.id})" title="View Details">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    ${member.status === 'pending' ? 
+                                        `<button class="btn btn-sm btn-danger" onclick="updateMemberStatus(${member.id}, 'rejected')" title="Reject Application">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>` : 
+                                        `<button class="btn btn-sm btn-warning" onclick="updateMemberStatus(${member.id}, 'inactive')" title="Deactivate Member">
+                                            <i class="fas fa-user-slash"></i> Deactivate
+                                        </button>`}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += '</tbody></table></div>';
+                container.innerHTML = tableHTML;
+            } else {
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 3rem;">
+                        <i class="fas fa-users" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem;">No Members Found</h3>
+                        <p style="color: #666; margin-bottom: 2rem;">No members match your current filter criteria.</p>
+                        <button class="btn btn-primary" onclick="clearFilters()">
+                            <i class="fas fa-filter"></i> Clear Filters
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Function to filter members based on selected criteria
+        function filterMembers() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const membershipFilter = document.getElementById('membershipFilter').value;
+            const modelAFilter = document.getElementById('modelAFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let filteredMembers = allMembers.filter(member => {
+                // Status filter
+                if (statusFilter && member.status !== statusFilter) return false;
+                
+                // Membership type filter
+                if (membershipFilter && member.membership_type !== membershipFilter) return false;
+                
+                // Model A ownership filter
+                if (modelAFilter && member.model_a_owned.toString() !== modelAFilter) return false;
+                
+                // Search filter (name or email)
+                if (searchFilter) {
+                    const fullName = `${member.first_name} ${member.last_name}`.toLowerCase();
+                    const email = member.email.toLowerCase();
+                    if (!fullName.includes(searchFilter) && !email.includes(searchFilter)) return false;
+                }
+                
+                return true;
+            });
+            
+            displayMembers(filteredMembers);
+        }
+        
+        // Function to clear all filters
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('membershipFilter').value = '';
+            document.getElementById('modelAFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            displayMembers(allMembers);
+        }
+        
+        // Function to update member status (approve/reject/deactivate)
+        async function updateMemberStatus(memberId, status) {
+            const statusActions = {
+                'active': 'approve',
+                'rejected': 'reject',
+                'inactive': 'deactivate'
+            };
+            const action = statusActions[status];
+            
+            if (!confirm(`Are you sure you want to ${action} this member?`)) return;
+            
+            if (!isSupabaseConfigured()) {
+                alert(`Demo mode - would ${action} member with ID: ${memberId}`);
+                // Update demo data
+                const member = allMembers.find(m => m.id === memberId);
+                if (member) {
+                    member.status = status;
+                    displayMembers(allMembers);
+                }
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('members')
+                    .update({ status: status })
+                    .eq('id', memberId);
+                
+                if (error) throw error;
+                
+                // Show success message and reload members list
+                const container = document.getElementById('membersContent');
+                container.innerHTML = `<div class="message success">Member ${action}d successfully!</div>`;
+                
+                setTimeout(() => {
+                    loadMembers();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error updating member status:', error);
+                alert('Error updating member status. Please try again.');
+            }
+        }
+        
+        // Function to view member details
+        async function viewMember(memberId) {
+            if (!isSupabaseConfigured()) {
+                // Show demo member details
+                const member = allMembers.find(m => m.id === memberId);
+                if (member) {
+                    showMemberDetails(member);
+                }
+                return;
+            }
+            
+            try {
+                // Get member data
+                const { data: member, error } = await supabase
+                    .from('members')
+                    .select('*')
+                    .eq('id', memberId)
+                    .single();
+                
+                if (error) throw error;
+                
+                showMemberDetails(member);
+                
+            } catch (error) {
+                console.error('Error loading member details:', error);
+                alert('Error loading member details. Please try again.');
+            }
+        }
+        
+        // Function to display member details in modal
+        function showMemberDetails(member) {
+            const detailsDiv = document.getElementById('memberDetails');
+            const modalTitle = document.getElementById('memberModalTitle');
+            
+            modalTitle.textContent = `${member.first_name} ${member.last_name} - Member Details`;
+            
+            const appliedDate = new Date(member.created_at || member.join_date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            detailsDiv.innerHTML = `
+                <h4>Personal Information</h4>
+                <p><strong>Name:</strong> ${member.first_name} ${member.last_name}</p>
+                <p><strong>Email:</strong> ${member.email}</p>
+                <p><strong>Phone:</strong> ${member.phone || 'Not provided'}</p>
+                <p><strong>Status:</strong> <span class="status-badge ${member.status}">${member.status}</span></p>
+                <p><strong>Application Date:</strong> ${appliedDate}</p>
+                
+                <h4>Membership Information</h4>
+                <p><strong>Membership Type:</strong> ${member.membership_type} (${getMembershipPrice(member.membership_type)}/year)</p>
+                <p><strong>Experience Level:</strong> ${member.experience_level || 'Not specified'}</p>
+                <p><strong>How They Heard:</strong> ${member.how_heard || 'Not specified'}</p>
+                <p><strong>Newsletter Signup:</strong> ${member.newsletter_signup ? 'Yes' : 'No'}</p>
+                
+                <h4>Model A Information</h4>
+                <p><strong>Owns Model A:</strong> ${member.model_a_owned ? 'Yes' : 'No'}</p>
+                ${member.model_a_owned ? `
+                    <p><strong>Model Year:</strong> ${member.model_year || 'Not specified'}</p>
+                    <p><strong>Body Style:</strong> ${member.body_style || 'Not specified'}</p>
+                ` : ''}
+                
+                ${member.interests ? `
+                    <h4>Interests & Notes</h4>
+                    <p><strong>Areas of Interest:</strong> ${member.interests}</p>
+                ` : ''}
+            `;
+            
+            document.getElementById('memberModal').classList.add('show');
+        }
+        
+        // Function to get membership price based on type
+        function getMembershipPrice(type) {
+            const prices = {
+                'individual': 45,
+                'family': 65,
+                'student': 25
+            };
+            return prices[type] || 45;
+        }
+        
+        // Function to export members list
+        function exportMembers() {
+            if (!isSupabaseConfigured()) {
+                alert('Demo mode - would export members list to CSV');
+                return;
+            }
+            
+            // Get current filtered members
+            const statusFilter = document.getElementById('statusFilter').value;
+            const membershipFilter = document.getElementById('membershipFilter').value;
+            const modelAFilter = document.getElementById('modelAFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let membersToExport = allMembers;
+            
+            // Apply same filters as display
+            if (statusFilter || membershipFilter || modelAFilter || searchFilter) {
+                membersToExport = allMembers.filter(member => {
+                    if (statusFilter && member.status !== statusFilter) return false;
+                    if (membershipFilter && member.membership_type !== membershipFilter) return false;
+                    if (modelAFilter && member.model_a_owned.toString() !== modelAFilter) return false;
+                    if (searchFilter) {
+                        const fullName = `${member.first_name} ${member.last_name}`.toLowerCase();
+                        const email = member.email.toLowerCase();
+                        if (!fullName.includes(searchFilter) && !email.includes(searchFilter)) return false;
+                    }
+                    return true;
+                });
+            }
+            
+            // Create CSV content
+            const headers = [
+                'Name', 'Email', 'Phone', 'Membership Type', 'Status', 'Model A Owned', 
+                'Model Year', 'Body Style', 'Experience Level', 'Application Date'
+            ];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            membersToExport.forEach(member => {
+                const row = [
+                    `"${member.first_name} ${member.last_name}"`,
+                    member.email,
+                    member.phone || '',
+                    member.membership_type,
+                    member.status,
+                    member.model_a_owned ? 'Yes' : 'No',
+                    member.model_year || '',
+                    member.body_style || '',
+                    member.experience_level || '',
+                    new Date(member.created_at || member.join_date).toLocaleDateString()
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Download CSV file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `club-members-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // ===== MODAL MANAGEMENT FUNCTIONS =====
+        
+        // Function to close modals
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        });
+
+        // ===== UTILITY FUNCTIONS =====
+        
+        // Function to get member count by status
+        function getMemberStats() {
+            const stats = {
+                total: allMembers.length,
+                pending: allMembers.filter(m => m.status === 'pending').length,
+                active: allMembers.filter(m => m.status === 'active').length,
+                rejected: allMembers.filter(m => m.status === 'rejected').length,
+                inactive: allMembers.filter(m => m.status === 'inactive').length,
+                modelAOwners: allMembers.filter(m => m.model_a_owned).length
+            };
+            
+            console.log('Member Statistics:', stats);
+            return stats;
+        }
+        
+        // Function to format member data for display
+        function formatMemberData(member) {
+            return {
+                ...member,
+                fullName: `${member.first_name} ${member.last_name}`,
+                joinDateFormatted: new Date(member.join_date || member.created_at).toLocaleDateString(),
+                membershipTypeFormatted: member.membership_type.charAt(0).toUpperCase() + member.membership_type.slice(1),
+                modelAInfo: member.model_a_owned ? 
+                    `${member.model_year || 'Unknown Year'} ${member.body_style || 'Unknown Style'}` : 
+                    'No Model A'
+            };
+        }
+
+        // ===== INITIALIZATION =====
+        
+        // Initialize members management when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load members data
+            loadMembers();
+            
+            // Show configuration warning if needed
+            if (!isSupabaseConfigured()) {
+                console.warn('🔧 SETUP REQUIRED: Please configure your Supabase credentials.');
+                console.warn('📍 Look for SUPABASE_URL and SUPABASE_ANON_KEY variables and replace with your actual values.');
+            }
+            
+            console.log('👥 Members Management page loaded successfully!');
+            console.log('🔗 Database connection:', isSupabaseConfigured() ? 'Configured' : 'Demo mode');
+        });
+    </script>
+</body>
+</html>

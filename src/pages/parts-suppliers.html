@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper responsive behavior and SEO -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Find trusted Ford Model A parts suppliers recommended by our club members">
+    <meta name="keywords" content="Ford Model A, parts suppliers, vintage car parts, restoration parts, Model A restoration">
+    <title>Parts Suppliers - Ford Model A Club</title>
+    
+    <!-- Font imports for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS FILES -->
+    <link rel="stylesheet" href="styles.css">  <!-- Base styles first -->
+    <link rel="stylesheet" href="main.css">    <!-- Main website styles -->
+    
+    <!-- Supabase JavaScript Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- IMPORTANT: Load shared configuration first -->
+    <script src="config.js"></script>
+    
+</head>
+<body>
+    <!-- Include Header -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content Section - Parts Suppliers -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <section class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-tools"></i>
+                    Parts Suppliers Directory
+                </h1>
+                <p class="page-description">
+                    Find trusted Ford Model A parts suppliers recommended by our club members. 
+                    Browse by specialty, search for specific parts, or discover new suppliers for your restoration project.
+                </p>
+            </section>
+
+            <!-- Search and Filter Section -->
+            <section class="search-filters">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input 
+                            type="text" 
+                            id="supplier-search" 
+                            placeholder="Search suppliers, parts, or specialties..."
+                            aria-label="Search parts suppliers"
+                        >
+                        <button class="clear-search" id="clear-search" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="specialty-filter">Filter by Specialty:</label>
+                        <select id="specialty-filter">
+                            <option value="">All Specialties</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="recommendation-filter">Recommendations:</label>
+                        <select id="recommendation-filter">
+                            <option value="">All Suppliers</option>
+                            <option value="club-recommended">Club Recommended</option>
+                            <option value="member-discount">Member Discounts</option>
+                            <option value="international-shipping">Ships Internationally</option>
+                            <option value="warranty">Offers Warranty</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="sort-filter">Sort By:</label>
+                        <select id="sort-filter">
+                            <option value="recommended">Recommended First</option>
+                            <option value="name">Name A-Z</option>
+                            <option value="experience">Years in Business</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Stats Section -->
+            <section class="supplier-stats" id="supplier-stats" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-suppliers">0</div>
+                        <div class="stat-label">Total Suppliers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="recommended-suppliers">0</div>
+                        <div class="stat-label">Club Recommended</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="discount-suppliers">0</div>
+                        <div class="stat-label">Member Discounts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="international-suppliers">0</div>
+                        <div class="stat-label">Ship Internationally</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <section class="loading-section" id="loading-section">
+                <div class="loading-container">
+                    <i class="fas fa-spinner fa-spin loading-icon"></i>
+                    <h3>Loading parts suppliers...</h3>
+                    <p>Please wait while we fetch the latest supplier information.</p>
+                </div>
+            </section>
+
+            <!-- Results Info -->
+            <section class="results-info" id="results-info" style="display: none;">
+                <p>Showing <span id="results-count">0</span> suppliers</p>
+            </section>
+
+            <!-- Suppliers Grid -->
+            <section class="suppliers-section">
+                <div class="suppliers-grid" id="suppliers-container">
+                    <!-- Suppliers will be populated here dynamically -->
+                </div>
+
+                <!-- No Results State -->
+                <div class="no-results" id="no-results" style="display: none;">
+                    <div class="no-results-content">
+                        <i class="fas fa-search no-results-icon"></i>
+                        <h3>No suppliers found</h3>
+                        <p>Try adjusting your search terms or filters to find what you're looking for.</p>
+                        <button class="btn btn-primary" onclick="clearAllFilters()">
+                            <i class="fas fa-refresh"></i>
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Supplier Detail Modal -->
+            <div class="modal-overlay" id="supplier-modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modal-supplier-name">Supplier Name</h3>
+                        <button class="modal-close" onclick="closeSupplierModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="supplier-badges" id="modal-badges">
+                            <!-- Badges will be populated here -->
+                        </div>
+                        
+                        <div class="supplier-description">
+                            <p id="modal-description">Supplier description will appear here.</p>
+                        </div>
+                        
+                        <div class="supplier-details">
+                            <div class="detail-section">
+                                <h4><i class="fas fa-wrench"></i> Specialties</h4>
+                                <div class="specialties-list" id="modal-specialties">
+                                    <!-- Specialties will be populated here -->
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section" id="modal-contact-section">
+                                <h4><i class="fas fa-phone"></i> Contact Information</h4>
+                                <div class="contact-info" id="modal-contact">
+                                    <!-- Contact info will be populated here -->
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section" id="modal-business-section">
+                                <h4><i class="fas fa-building"></i> Business Information</h4>
+                                <div class="business-info" id="modal-business">
+                                    <!-- Business info will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeSupplierModal()">
+                            Close
+                        </button>
+                        <a class="btn btn-primary" id="modal-website-btn" href="#" target="_blank">
+                            <i class="fas fa-external-link-alt"></i>
+                            Visit Website
+                        </a>
+                        <a class="btn btn-outline" id="modal-contact-btn" href="#" target="_blank">
+                            <i class="fas fa-envelope"></i>
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Include Footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- JavaScript for Parts Suppliers functionality -->
+    <script>
+        // ===== SUPABASE INITIALIZATION =====
+        
+        // Initialize Supabase client (using config from config.js)
+        let supabaseClient;
+        if (typeof getSupabaseClient === 'function') {
+            supabaseClient = getSupabaseClient();
+        } else {
+            console.warn('Supabase configuration not found. Running in demo mode.');
+        }
+
+        // ===== GLOBAL VARIABLES =====
+        
+        let allSuppliers = []; // Store all supplier data
+        let filteredSuppliers = []; // Currently filtered suppliers
+        let allSpecialties = []; // All unique specialties for filter dropdown
+
+        // ===== HTML INCLUDE FUNCTIONALITY =====
+        
+        /**
+         * Load external HTML files into placeholders
+         */
+        async function loadHTMLIncludes() {
+            try {
+                // Load header
+                const headerResponse = await fetch('header.html');
+                if (headerResponse.ok) {
+                    const headerHTML = await headerResponse.text();
+                    document.getElementById('header-placeholder').innerHTML = headerHTML;
+                }
+                
+                // Load footer
+                const footerResponse = await fetch('footer.html');
+                if (footerResponse.ok) {
+                    const footerHTML = await footerResponse.text();
+                    document.getElementById('footer-placeholder').innerHTML = footerHTML;
+                }
+            } catch (error) {
+                console.error('Error loading HTML includes:', error);
+            }
+        }
+
+        // ===== SUPPLIER DATA FUNCTIONS =====
+        
+        /**
+         * Load suppliers data from Supabase
+         */
+        async function loadSuppliersData() {
+            if (!supabaseClient) {
+                // Demo data for when Supabase is not configured
+                return loadDemoSuppliers();
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('parts_suppliers')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('club_recommended', { ascending: false })
+                    .order('name', { ascending: true });
+
+                if (error) {
+                    throw error;
+                }
+
+                allSuppliers = data || [];
+                filteredSuppliers = [...allSuppliers];
+                
+                // Extract unique specialties for filter dropdown
+                extractSpecialties();
+                
+                return allSuppliers;
+            } catch (error) {
+                console.error('Error loading suppliers:', error);
+                return loadDemoSuppliers();
+            }
+        }
+
+        /**
+         * Load demo suppliers data when Supabase is not configured
+         */
+        function loadDemoSuppliers() {
+            allSuppliers = [
+                {
+                    id: '1',
+                    name: "Bratton's Antique Auto Parts",
+                    description: "Family-owned business specializing in Ford Model A restoration parts. Extensive inventory of engine, transmission, and body components. Known for high-quality reproduction parts and excellent customer service.",
+                    main_website_url: "https://www.brattons-autoparts.com",
+                    support_contact_url: "https://www.brattons-autoparts.com/contact",
+                    phone: "(555) 123-4567",
+                    email: "info@brattons-autoparts.com",
+                    address: "1234 Classic Car Lane, Restoration City, MI 48001",
+                    specialties: ["engine parts", "transmission", "body restoration", "electrical"],
+                    parts_categories: ["reproduction", "restored", "new"],
+                    years_in_business: 45,
+                    ships_internationally: true,
+                    accepts_returns: true,
+                    warranty_offered: true,
+                    catalog_available: true,
+                    club_recommended: true,
+                    member_discount: true,
+                    discount_percentage: 10.00
+                },
+                {
+                    id: '2',
+                    name: "Model A Ford Parts Supply",
+                    description: "Comprehensive supplier of Model A Ford parts and accessories. Specializes in hard-to-find components and custom fabrication services. Offers both original and reproduction parts.",
+                    main_website_url: "https://www.modelapartsupply.com",
+                    support_contact_url: "https://www.modelapartsupply.com/support",
+                    phone: "(555) 987-6543",
+                    email: "sales@modelapartsupply.com",
+                    address: "5678 Vintage Avenue, Classic Town, CA 90210",
+                    specialties: ["hard-to-find parts", "custom fabrication", "upholstery", "chrome"],
+                    parts_categories: ["original", "reproduction", "custom"],
+                    years_in_business: 32,
+                    ships_internationally: true,
+                    accepts_returns: true,
+                    warranty_offered: false,
+                    catalog_available: true,
+                    club_recommended: true,
+                    member_discount: true,
+                    discount_percentage: 15.00
+                },
+                {
+                    id: '3',
+                    name: "Classic Ford Restoration",
+                    description: "Full-service restoration shop that also sells parts. Expert knowledge in Model A systems and components. Offers restoration services and technical support.",
+                    main_website_url: "https://www.classicfordrestoration.com",
+                    support_contact_url: "https://www.classicfordrestoration.com/contact-us",
+                    phone: "(555) 456-7890",
+                    email: "parts@classicfordrestoration.com",
+                    address: "9012 Heritage Road, Antique City, TX 75001",
+                    specialties: ["restoration services", "technical support", "complete engines", "paint supplies"],
+                    parts_categories: ["restored", "rebuilt", "reproduction"],
+                    years_in_business: 28,
+                    ships_internationally: false,
+                    accepts_returns: true,
+                    warranty_offered: true,
+                    catalog_available: false,
+                    club_recommended: true,
+                    member_discount: false,
+                    discount_percentage: null
+                }
+            ];
+            
+            filteredSuppliers = [...allSuppliers];
+            extractSpecialties();
+            return allSuppliers;
+        }
+
+        /**
+         * Extract unique specialties for filter dropdown
+         */
+        function extractSpecialties() {
+            const specialtiesSet = new Set();
+            allSuppliers.forEach(supplier => {
+                if (supplier.specialties && Array.isArray(supplier.specialties)) {
+                    supplier.specialties.forEach(specialty => {
+                        specialtiesSet.add(specialty);
+                    });
+                }
+            });
+            allSpecialties = Array.from(specialtiesSet).sort();
+            populateSpecialtyFilter();
+        }
+
+        /**
+         * Populate the specialty filter dropdown
+         */
+        function populateSpecialtyFilter() {
+            const specialtyFilter = document.getElementById('specialty-filter');
+            if (!specialtyFilter) return;
+
+            // Clear existing options except the first one
+            specialtyFilter.innerHTML = '<option value="">All Specialties</option>';
+            
+            allSpecialties.forEach(specialty => {
+                const option = document.createElement('option');
+                option.value = specialty;
+                option.textContent = capitalizeWords(specialty);
+                specialtyFilter.appendChild(option);
+            });
+        }
+
+        /**
+         * Capitalize words for display
+         */
+        function capitalizeWords(str) {
+            return str.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+
+        // ===== DISPLAY FUNCTIONS =====
+        
+        /**
+         * Display suppliers in the grid
+         */
+        function displaySuppliers() {
+            const container = document.getElementById('suppliers-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (filteredSuppliers.length === 0) {
+                showNoResults();
+                return;
+            }
+
+            hideNoResults();
+
+            filteredSuppliers.forEach(supplier => {
+                const supplierCard = createSupplierCard(supplier);
+                container.appendChild(supplierCard);
+            });
+
+            updateResultsInfo();
+        }
+
+        /**
+         * Create a supplier card element
+         */
+        function createSupplierCard(supplier) {
+            const card = document.createElement('div');
+            card.className = 'supplier-card';
+            card.setAttribute('data-supplier-id', supplier.id);
+
+            // Create badges
+            const badges = [];
+            if (supplier.club_recommended) badges.push('<span class="badge badge-recommended">Club Recommended</span>');
+            if (supplier.member_discount) badges.push(`<span class="badge badge-discount">${supplier.discount_percentage}% Member Discount</span>`);
+            if (supplier.ships_internationally) badges.push('<span class="badge badge-international">Ships Internationally</span>');
+            if (supplier.warranty_offered) badges.push('<span class="badge badge-warranty">Warranty Available</span>');
+
+            // Create specialties list (limit to 4 for card display)
+            const displaySpecialties = supplier.specialties ? supplier.specialties.slice(0, 4) : [];
+            const specialtiesHTML = displaySpecialties.map(specialty => 
+                `<span class="specialty-tag">${capitalizeWords(specialty)}</span>`
+            ).join('');
+            const moreSpecialties = supplier.specialties && supplier.specialties.length > 4 
+                ? `<span class="specialty-tag more">+${supplier.specialties.length - 4} more</span>` 
+                : '';
+
+            card.innerHTML = `
+                <div class="supplier-header">
+                    <h3 class="supplier-name">${supplier.name}</h3>
+                    <div class="supplier-badges">
+                        ${badges.join('')}
+                    </div>
+                </div>
+                
+                <div class="supplier-description">
+                    <p>${supplier.description ? supplier.description.substring(0, 150) + '...' : 'No description available.'}</p>
+                </div>
+                
+                <div class="supplier-specialties">
+                    <h4>Specialties:</h4>
+                    <div class="specialties-tags">
+                        ${specialtiesHTML}
+                        ${moreSpecialties}
+                    </div>
+                </div>
+                
+                <div class="supplier-contact">
+                    ${supplier.phone ? `<div class="contact-item"><i class="fas fa-phone"></i> ${supplier.phone}</div>` : ''}
+                    ${supplier.email ? `<div class="contact-item"><i class="fas fa-envelope"></i> ${supplier.email}</div>` : ''}
+                    ${supplier.years_in_business ? `<div class="contact-item"><i class="fas fa-calendar"></i> ${supplier.years_in_business} years in business</div>` : ''}
+                </div>
+                
+                <div class="supplier-actions">
+                    <button class="btn btn-primary" onclick="showSupplierDetails('${supplier.id}')">
+                        <i class="fas fa-info-circle"></i>
+                        View Details
+                    </button>
+                    ${supplier.main_website_url ? `
+                        <a href="${supplier.main_website_url}" target="_blank" class="btn btn-outline">
+                            <i class="fas fa-external-link-alt"></i>
+                            Visit Website
+                        </a>
+                    ` : ''}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // ===== SEARCH AND FILTER FUNCTIONS =====
+        
+        /**
+         * Apply search and filters
+         */
+        function applyFilters() {
+            const searchTerm = document.getElementById('supplier-search')?.value.toLowerCase().trim() || '';
+            const specialtyFilter = document.getElementById('specialty-filter')?.value || '';
+            const recommendationFilter = document.getElementById('recommendation-filter')?.value || '';
+            const sortFilter = document.getElementById('sort-filter')?.value || 'recommended';
+
+            let filtered = [...allSuppliers];
+
+            // Apply search filter
+            if (searchTerm) {
+                filtered = filtered.filter(supplier => 
+                    supplier.name.toLowerCase().includes(searchTerm) ||
+                    (supplier.description && supplier.description.toLowerCase().includes(searchTerm)) ||
+                    (supplier.specialties && supplier.specialties.some(specialty => 
+                        specialty.toLowerCase().includes(searchTerm)
+                    )) ||
+                    (supplier.parts_categories && supplier.parts_categories.some(category => 
+                        category.toLowerCase().includes(searchTerm)
+                    ))
+                );
+            }
+
+            // Apply specialty filter
+            if (specialtyFilter) {
+                filtered = filtered.filter(supplier => 
+                    supplier.specialties && supplier.specialties.includes(specialtyFilter)
+                );
+            }
+
+            // Apply recommendation filter
+            switch (recommendationFilter) {
+                case 'club-recommended':
+                    filtered = filtered.filter(supplier => supplier.club_recommended);
+                    break;
+                case 'member-discount':
+                    filtered = filtered.filter(supplier => supplier.member_discount);
+                    break;
+                case 'international-shipping':
+                    filtered = filtered.filter(supplier => supplier.ships_internationally);
+                    break;
+                case 'warranty':
+                    filtered = filtered.filter(supplier => supplier.warranty_offered);
+                    break;
+            }
+
+            // Apply sorting
+            filtered = sortSuppliers(filtered, sortFilter);
+
+            filteredSuppliers = filtered;
+            displaySuppliers();
+        }
+
+        /**
+         * Sort suppliers based on criteria
+         */
+        function sortSuppliers(suppliers, sortBy) {
+            const sorted = [...suppliers];
+            
+            switch (sortBy) {
+                case 'recommended':
+                    return sorted.sort((a, b) => {
+                        if (a.club_recommended !== b.club_recommended) {
+                            return b.club_recommended - a.club_recommended;
+                        }
+                        return a.name.localeCompare(b.name);
+                    });
+                case 'name':
+                    return sorted.sort((a, b) => a.name.localeCompare(b.name));
+                case 'experience':
+                    return sorted.sort((a, b) => (b.years_in_business || 0) - (a.years_in_business || 0));
+                default:
+                    return sorted;
+            }
+        }
+
+        // ===== SEARCH FUNCTIONALITY =====
+        
+        let searchTimeout;
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                applyFilters();
+                updateClearButton();
+            }, 300);
+        }
+
+        function updateClearButton() {
+            const searchInput = document.getElementById('supplier-search');
+            const clearButton = document.getElementById('clear-search');
+            
+            if (searchInput && clearButton) {
+                if (searchInput.value.length > 0) {
+                    clearButton.style.display = 'block';
+                } else {
+                    clearButton.style.display = 'none';
+                }
+            }
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('supplier-search');
+            if (searchInput) {
+                searchInput.value = '';
+                updateClearButton();
+                applyFilters();
+            }
+        }
+
+        function clearAllFilters() {
+            document.getElementById('supplier-search').value = '';
+            document.getElementById('specialty-filter').value = '';
+            document.getElementById('recommendation-filter').value = '';
+            document.getElementById('sort-filter').value = 'recommended';
+            updateClearButton();
+            applyFilters();
+        }
+
+        // ===== MODAL FUNCTIONS =====
+        
+        /**
+         * Show supplier details in modal
+         */
+        function showSupplierDetails(supplierId) {
+            const supplier = allSuppliers.find(s => s.id === supplierId);
+            if (!supplier) return;
+
+            // Populate modal content
+            document.getElementById('modal-supplier-name').textContent = supplier.name;
+            document.getElementById('modal-description').textContent = supplier.description || 'No description available.';
+
+            // Create badges
+            const badgesContainer = document.getElementById('modal-badges');
+            const badges = [];
+            if (supplier.club_recommended) badges.push('<span class="badge badge-recommended">Club Recommended</span>');
+            if (supplier.member_discount) badges.push(`<span class="badge badge-discount">${supplier.discount_percentage}% Member Discount</span>`);
+            if (supplier.ships_internationally) badges.push('<span class="badge badge-international">Ships Internationally</span>');
+            if (supplier.warranty_offered) badges.push('<span class="badge badge-warranty">Warranty Available</span>');
+            if (supplier.accepts_returns) badges.push('<span class="badge badge-returns">Accepts Returns</span>');
+            if (supplier.catalog_available) badges.push('<span class="badge badge-catalog">Catalog Available</span>');
+            badgesContainer.innerHTML = badges.join('');
+
+            // Populate specialties
+            const specialtiesContainer = document.getElementById('modal-specialties');
+            if (supplier.specialties && supplier.specialties.length > 0) {
+                specialtiesContainer.innerHTML = supplier.specialties.map(specialty => 
+                    `<span class="specialty-tag">${capitalizeWords(specialty)}</span>`
+                ).join('');
+            } else {
+                specialtiesContainer.innerHTML = '<p>No specialties listed.</p>';
+            }
+
+            // Populate contact information
+            const contactContainer = document.getElementById('modal-contact');
+            const contactInfo = [];
+            if (supplier.phone) contactInfo.push(`<div class="contact-item"><i class="fas fa-phone"></i> <strong>Phone:</strong> ${supplier.phone}</div>`);
+            if (supplier.email) contactInfo.push(`<div class="contact-item"><i class="fas fa-envelope"></i> <strong>Email:</strong> ${supplier.email}</div>`);
+            if (supplier.address) contactInfo.push(`<div class="contact-item"><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> ${supplier.address}</div>`);
+            contactContainer.innerHTML = contactInfo.length > 0 ? contactInfo.join('') : '<p>No contact information available.</p>';
+
+            // Populate business information
+            const businessContainer = document.getElementById('modal-business');
+            const businessInfo = [];
+            if (supplier.years_in_business) businessInfo.push(`<div class="business-item"><strong>Years in Business:</strong> ${supplier.years_in_business}</div>`);
+            if (supplier.parts_categories && supplier.parts_categories.length > 0) {
+                businessInfo.push(`<div class="business-item"><strong>Parts Categories:</strong> ${supplier.parts_categories.map(cat => capitalizeWords(cat)).join(', ')}</div>`);
+            }
+            businessContainer.innerHTML = businessInfo.length > 0 ? businessInfo.join('') : '<p>No business information available.</p>';
+
+            // Set up action buttons
+            const websiteBtn = document.getElementById('modal-website-btn');
+            const contactBtn = document.getElementById('modal-contact-btn');
+            
+            if (supplier.main_website_url) {
+                websiteBtn.href = supplier.main_website_url;
+                websiteBtn.style.display = 'inline-flex';
+            } else {
+                websiteBtn.style.display = 'none';
+            }
+            
+            if (supplier.support_contact_url) {
+                contactBtn.href = supplier.support_contact_url;
+                contactBtn.style.display = 'inline-flex';
+            } else {
+                contactBtn.style.display = 'none';
+            }
+
+            // Show modal
+            document.getElementById('supplier-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        /**
+         * Close supplier modal
+         */
+        function closeSupplierModal() {
+            document.getElementById('supplier-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        
+        function showLoading() {
+            document.getElementById('loading-section').style.display = 'block';
+            document.getElementById('supplier-stats').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-section').style.display = 'none';
+            document.getElementById('supplier-stats').style.display = 'block';
+        }
+
+        function showNoResults() {
+            document.getElementById('no-results').style.display = 'block';
+        }
+
+        function hideNoResults() {
+            document.getElementById('no-results').style.display = 'none';
+        }
+
+        function updateResultsInfo() {
+            const resultsInfo = document.getElementById('results-info');
+            const resultsCount = document.getElementById('results-count');
+            
+            if (resultsCount) {
+                resultsCount.textContent = filteredSuppliers.length;
+            }
+            
+            if (resultsInfo) {
+                resultsInfo.style.display = 'block';
+            }
+        }
+
+        function updateStats() {
+            const totalSuppliers = allSuppliers.length;
+            const recommendedSuppliers = allSuppliers.filter(s => s.club_recommended).length;
+            const discountSuppliers = allSuppliers.filter(s => s.member_discount).length;
+            const internationalSuppliers = allSuppliers.filter(s => s.ships_internationally).length;
+
+            document.getElementById('total-suppliers').textContent = totalSuppliers;
+            document.getElementById('recommended-suppliers').textContent = recommendedSuppliers;
+            document.getElementById('discount-suppliers').textContent = discountSuppliers;
+            document.getElementById('international-suppliers').textContent = internationalSuppliers;
+        }
+
+        // ===== EVENT LISTENERS =====
+        
+        function setupEventListeners() {
+            // Search functionality
+            const searchInput = document.getElementById('supplier-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', handleSearch);
+            }
+
+            const clearButton = document.getElementById('clear-search');
+            if (clearButton) {
+                clearButton.addEventListener('click', clearSearch);
+            }
+
+            // Filter functionality
+            document.getElementById('specialty-filter')?.addEventListener('change', applyFilters);
+            document.getElementById('recommendation-filter')?.addEventListener('change', applyFilters);
+            document.getElementById('sort-filter')?.addEventListener('change', applyFilters);
+
+            // Modal close on background click
+            const modal = document.getElementById('supplier-modal');
+            if (modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        closeSupplierModal();
+                    }
+                });
+            }
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(event) {
+                // Focus search when user presses '/' key
+                if (event.key === '/' && !event.target.matches('input, textarea, select')) {
+                    event.preventDefault();
+                    searchInput?.focus();
+                }
+                
+                // Close modal when user presses Escape
+                if (event.key === 'Escape') {
+                    closeSupplierModal();
+                }
+            });
+        }
+
+        // ===== MOBILE MENU FUNCTIONALITY =====
+        
+        function toggleMobileMenu() {
+            const menu = document.querySelector('.nav-menu');
+            const button = document.querySelector('.mobile-menu-toggle');
+            
+            if (menu && button) {
+                menu.classList.toggle('active');
+                
+                const icon = button.querySelector('i');
+                if (menu.classList.contains('active')) {
+                    icon.className = 'fas fa-times';
+                } else {
+                    icon.className = 'fas fa-bars';
+                }
+            }
+        }
+
+        function setupMobileMenuClosing() {
+            document.querySelectorAll('.nav-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    const menu = document.querySelector('.nav-menu');
+                    const button = document.querySelector('.mobile-menu-toggle');
+                    const icon = button?.querySelector('i');
+                    
+                    if (menu) menu.classList.remove('active');
+                    if (icon) icon.className = 'fas fa-bars';
+                });
+            });
+        }
+
+        // ===== PAGE INITIALIZATION =====
+        
+        /**
+         * Initialize the parts suppliers page
+         */
+        async function initializePage() {
+            showLoading();
+            
+            try {
+                // Load header and footer
+                await loadHTMLIncludes();
+                
+                // Set up event listeners after includes are loaded
+                setTimeout(() => {
+                    setupEventListeners();
+                    setupMobileMenuClosing();
+                }, 100);
+                
+                // Load suppliers data
+                await loadSuppliersData();
+                
+                // Display initial data
+                displaySuppliers();
+                updateStats();
+                
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                hideLoading();
+                
+                // Show error message
+                const container = document.getElementById('suppliers-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Error Loading Suppliers</h3>
+                            <p>We encountered an error while loading the suppliers directory. Please refresh the page or try again later.</p>
+                            <button class="btn btn-primary" onclick="location.reload()">
+                                <i class="fas fa-refresh"></i>
+                                Refresh Page
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // ===== DOM READY =====
+        
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+        // Make functions available globally for onclick handlers
+        window.showSupplierDetails = showSupplierDetails;
+        window.closeSupplierModal = closeSupplierModal;
+        window.clearAllFilters = clearAllFilters;
+        window.toggleMobileMenu = toggleMobileMenu;
+
+        console.log('🔧 Parts Suppliers page loaded successfully!');
+    </script>
+
+    <!-- Additional CSS for Parts Suppliers styling -->
+    <style>
+        /* ===== PARTS SUPPLIERS SPECIFIC STYLES ===== */
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .page-title i {
+            color: #e74c3c;
+        }
+
+        .page-description {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Search and Filter Styles */
+        .search-filters {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #95a5a6;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .clear-search:hover {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select {
+            padding: 0.75rem;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        /* Stats Grid */
+        .supplier-stats {
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        /* Loading Styles */
+        .loading-container {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .loading-icon {
+            font-size: 3rem;
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+
+        .loading-container h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-container p {
+            color: #7f8c8d;
+        }
+
+        /* Results Info */
+        .results-info {
+            margin-bottom: 1.5rem;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        /* Suppliers Grid */
+        .suppliers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .supplier-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .supplier-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border-color: #3498db;
+        }
+
+        .supplier-header {
+            margin-bottom: 1rem;
+        }
+
+        .supplier-name {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .supplier-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-recommended {
+            background: #27ae60;
+            color: white;
+        }
+
+        .badge-discount {
+            background: #f39c12;
+            color: white;
+        }
+
+        .badge-international {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .badge-warranty {
+            background: #3498db;
+            color: white;
+        }
+
+        .badge-returns {
+            background: #1abc9c;
+            color: white;
+        }
+
+        .badge-catalog {
+            background: #34495e;
+            color: white;
+        }
+
+        .supplier-description {
+            margin-bottom: 1rem;
+        }
+
+        .supplier-description p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+
+        .supplier-specialties h4 {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .specialties-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .specialty-tag {
+            background: #ecf0f1;
+            color: #2c3e50;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .specialty-tag.more {
+            background: #bdc3c7;
+            color: #2c3e50;
+        }
+
+        .supplier-contact {
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: #7f8c8d;
+        }
+
+        .contact-item i {
+            color: #3498db;
+            width: 15px;
+        }
+
+        .supplier-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #3498db;
+            border: 2px solid #3498db;
+        }
+
+        .btn-outline:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .no-results-content {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .no-results-icon {
+            font-size: 4rem;
+            color: #bdc3c7;
+            margin-bottom: 1rem;
+        }
+
+        .no-results h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .no-results p {
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 2rem 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .modal-header h3 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .supplier-badges {
+            margin-bottom: 1.5rem;
+        }
+
+        .supplier-description {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-section h4 i {
+            color: #3498db;
+        }
+
+        .business-item {
+            margin-bottom: 0.75rem;
+            color: #7f8c8d;
+        }
+
+        .business-item strong {
+            color: #2c3e50;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding: 1rem 2rem 2rem;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        /* Error Message */
+        .error-message {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: #fff5f5;
+            border-radius: 12px;
+            border: 2px solid #e74c3c;
+        }
+
+        .error-message i {
+            font-size: 3rem;
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+
+        .error-message h3 {
+            color: #c0392b;
+            margin-bottom: 1rem;
+        }
+
+        .error-message p {
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .search-filters {
+                padding: 1.5rem;
+            }
+
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .suppliers-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .supplier-card {
+                padding: 1rem;
+            }
+
+            .supplier-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                text-align: center;
+                justify-content: center;
+            }
+
+            .modal-content {
+                margin: 1rem;
+                max-height: calc(100vh - 2rem);
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding: 1.5rem;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                padding: 1rem 0;
+            }
+
+            .search-filters {
+                padding: 1rem;
+            }
+        }
+    </style>
+</body>
+</html>

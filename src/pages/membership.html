@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper responsive behavior and SEO -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Join the Ford Model A Club - Membership application form for vintage car enthusiasts">
+    <meta name="keywords" content="Ford Model A, membership, car club, vintage cars, classic automobiles">
+    <title>Membership Application - Ford Model A Club</title>
+    
+    <!-- Font imports for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS FILES -->
+    <link rel="stylesheet" href="styles.css">  <!-- Base styles first -->
+    <link rel="stylesheet" href="main.css">    <!-- Main website styles -->
+    
+    <!-- Supabase JavaScript Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- IMPORTANT: Load shared configuration first -->
+    <script src="config.js"></script>
+    
+</head>
+<body>
+    <!-- Fixed navigation header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav-container">
+                <!-- Logo with car icon -->
+                <a href="index.html" class="logo">
+                    <i class="fas fa-car-side"></i>
+                    <span>Model A Club</span>
+                </a>
+                
+                <!-- Desktop navigation menu -->
+                <ul class="nav-menu">
+                    <li><a href="index.html#home">Home</a></li>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#events">Events</a></li>
+                    <li><a href="index.html#news">News</a></li>
+                    <li><a href="index.html#gallery">Gallery</a></li>
+                    <li><a href="membership.html" class="active">Join Us</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+                
+                <!-- Mobile menu toggle button -->
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page header with club information -->
+    <section class="page-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Join Our Community</h1>
+                <p>Become part of our passionate community of Ford Model A enthusiasts</p>
+                <div class="breadcrumb">
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Membership Application</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Membership benefits section -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Why Join Our Club?</h2>
+            <div class="membership-benefits">
+                <div class="benefits-grid">
+                    <!-- Expert knowledge sharing benefit -->
+                    <div class="benefit-card">
+                        <i class="fas fa-tools"></i>
+                        <h3>Expert Restoration Tips</h3>
+                        <p>Learn from experienced mechanics and restorers. Access our extensive library of technical resources and step-by-step guides.</p>
+                    </div>
+                    
+                    <!-- Community events benefit -->
+                    <div class="benefit-card">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>Regular Events</h3>
+                        <p>Monthly meets, car shows, scenic drives, and technical workshops. Build lasting friendships with fellow enthusiasts.</p>
+                    </div>
+                    
+                    <!-- Parts and resources benefit -->
+                    <div class="benefit-card">
+                        <i class="fas fa-search"></i>
+                        <h3>Parts & Resources</h3>
+                        <p>Connect with trusted suppliers, find rare parts through our network, and access our comprehensive resource directory.</p>
+                    </div>
+                    
+                    <!-- Community support benefit -->
+                    <div class="benefit-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Supportive Community</h3>
+                        <p>Get help with projects, share your successes, and learn from members' decades of combined experience.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Membership types and pricing -->
+    <section class="section membership-types">
+        <div class="container">
+            <h2 class="section-title">Membership Options</h2>
+            <div class="pricing-grid">
+                <!-- Individual membership -->
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <i class="fas fa-user"></i>
+                        <h3>Individual</h3>
+                        <div class="price">$45<span>/year</span></div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Monthly newsletter</li>
+                        <li><i class="fas fa-check"></i> Event access</li>
+                        <li><i class="fas fa-check"></i> Technical resources</li>
+                        <li><i class="fas fa-check"></i> Online member directory</li>
+                        <li><i class="fas fa-check"></i> Parts swap network</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="selectMembershipType('individual')">Select Individual</button>
+                </div>
+                
+                <!-- Family membership -->
+                <div class="pricing-card featured">
+                    <div class="pricing-header">
+                        <i class="fas fa-users"></i>
+                        <h3>Family</h3>
+                        <div class="price">$65<span>/year</span></div>
+                        <div class="featured-badge">Most Popular</div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> All individual benefits</li>
+                        <li><i class="fas fa-check"></i> Up to 4 family members</li>
+                        <li><i class="fas fa-check"></i> Family event discounts</li>
+                        <li><i class="fas fa-check"></i> Kids' activities at events</li>
+                        <li><i class="fas fa-check"></i> Additional voting rights</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="selectMembershipType('family')">Select Family</button>
+                </div>
+                
+                <!-- Student membership -->
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <i class="fas fa-graduation-cap"></i>
+                        <h3>Student</h3>
+                        <div class="price">$25<span>/year</span></div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Monthly newsletter</li>
+                        <li><i class="fas fa-check"></i> Event access</li>
+                        <li><i class="fas fa-check"></i> Educational resources</li>
+                        <li><i class="fas fa-check"></i> Mentorship program</li>
+                        <li><i class="fas fa-check"></i> Student ID required</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="selectMembershipType('student')">Select Student</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Membership application form -->
+    <section class="section" id="application">
+        <div class="container">
+            <h2 class="section-title">Membership Application</h2>
+            <p class="text-center mb-3">Complete the form below to apply for membership in our club</p>
+            
+            <!-- Membership application form - saves to database -->
+            <form class="membership-form" id="membershipForm">
+                <h3 class="text-center mb-3">Application Details</h3>
+                
+                <!-- Message area for form feedback -->
+                <div id="formMessage"></div>
+                
+                <!-- Personal information fields -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="fas fa-user"></i> Personal Information
+                    </h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name *</label>
+                            <input type="text" id="firstName" name="first_name" required maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name *</label>
+                            <input type="text" id="lastName" name="last_name" required maxlength="100">
+                        </div>
+                    </div>
+                    
+                    <!-- Contact information fields -->
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required maxlength="255" 
+                               placeholder="your.email@example.com">
+                        <small class="form-help">We'll use this to contact you about your application and send club updates</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" maxlength="20" 
+                               placeholder="(555) 123-4567">
+                        <small class="form-help">Optional - for urgent club communications only</small>
+                    </div>
+                </div>
+                
+                <!-- Membership type selection -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="fas fa-id-card"></i> Membership Details
+                    </h4>
+                    
+                    <div class="form-group">
+                        <label for="membershipType">Membership Type *</label>
+                        <select id="membershipType" name="membership_type" required>
+                            <option value="">Select Membership Type</option>
+                            <option value="individual">Individual ($45/year)</option>
+                            <option value="family">Family ($65/year)</option>
+                            <option value="student">Student ($25/year)</option>
+                        </select>
+                        <small class="form-help">See membership benefits above for details on each type</small>
+                    </div>
+                </div>
+                
+                <!-- Model A ownership information -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="fas fa-car"></i> Model A Information
+                    </h4>
+                    
+                    <div class="form-group">
+                        <label for="modelAOwned">Do you currently own a Model A Ford?</label>
+                        <select id="modelAOwned" name="model_a_owned" onchange="toggleModelADetails()">
+                            <option value="false">No, but I'm interested in learning</option>
+                            <option value="true">Yes, I own one or more</option>
+                            <option value="restoring">Currently restoring one</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Conditional Model A details (shown when user owns a Model A) -->
+                    <div id="modelADetails" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modelYear">Model Year</label>
+                                <input type="text" id="modelYear" name="model_year" maxlength="10" 
+                                       placeholder="e.g., 1929">
+                                <small class="form-help">Year your Model A was manufactured</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="bodyStyle">Body Style</label>
+                                <input type="text" id="bodyStyle" name="body_style" maxlength="100" 
+                                       placeholder="e.g., Tudor Sedan, Roadster, Coupe">
+                                <small class="form-help">The body style of your Model A</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Experience and interests -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="fas fa-wrench"></i> Experience & Interests
+                    </h4>
+                    
+                    <div class="form-group">
+                        <label for="experience">Experience with Model A Fords</label>
+                        <select id="experience" name="experience_level">
+                            <option value="beginner">New to Model A's</option>
+                            <option value="intermediate">Some experience</option>
+                            <option value="experienced">Very experienced</option>
+                            <option value="expert">Expert level</option>
+                        </select>
+                        <small class="form-help">This helps us tailor events and communications to your level</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interests">Areas of Interest (optional)</label>
+                        <textarea id="interests" name="interests" rows="3" 
+                                  placeholder="e.g., restoration, touring, showing, mechanical work, history, photography"></textarea>
+                        <small class="form-help">Tell us what aspects of Model A ownership interest you most</small>
+                    </div>
+                </div>
+                
+                <!-- Club information -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="fas fa-info-circle"></i> Additional Information
+                    </h4>
+                    
+                    <div class="form-group">
+                        <label for="howHeard">How did you hear about our club?</label>
+                        <select id="howHeard" name="how_heard">
+                            <option value="">Select an option</option>
+                            <option value="website">Club website</option>
+                            <option value="member">Current member referral</option>
+                            <option value="event">Attended an event</option>
+                            <option value="social">Social media</option>
+                            <option value="car-show">Car show</option>
+                            <option value="internet">Internet search</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <small class="form-help">Helps us understand how people find our club</small>
+                    </div>
+                </div>
+                
+                <!-- Agreement and newsletter signup -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="fas fa-clipboard-check"></i> Preferences & Agreement
+                    </h4>
+                    
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="newsletter_signup" checked> 
+                            <span class="checkmark"></span>
+                            Yes, I'd like to receive the monthly newsletter
+                        </label>
+                        <small class="form-help">Stay updated with club news, events, and technical articles</small>
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="agreement" required> 
+                            <span class="checkmark"></span>
+                            I agree to the club bylaws and code of conduct *
+                        </label>
+                        <small class="form-help">
+                            View our <a href="/bylaws" target="_blank">club bylaws</a> and 
+                            <a href="/code-of-conduct" target="_blank">code of conduct</a>
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Submit button -->
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i class="fas fa-user-plus"></i> Submit Application
+                    </button>
+                    <p class="form-disclaimer">
+                        <i class="fas fa-info-circle"></i>
+                        Applications are typically reviewed within 2-3 business days. 
+                        You'll receive a confirmation email once your application is processed.
+                    </p>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Contact information for questions -->
+    <section class="section contact-info">
+        <div class="container">
+            <h2 class="section-title">Questions About Membership?</h2>
+            <div class="contact-grid">
+                <!-- Membership coordinator contact -->
+                <div class="contact-card">
+                    <i class="fas fa-user-tie"></i>
+                    <h3>Membership Coordinator</h3>
+                    <p>Sarah Johnson<br>
+                    <a href="mailto:membership@modelaclub.org">membership@modelaclub.org</a><br>
+                    Phone: (555) 123-4567<br>
+                    <em>Questions about membership benefits and applications</em></p>
+                </div>
+                
+                <!-- Club president contact -->
+                <div class="contact-card">
+                    <i class="fas fa-crown"></i>
+                    <h3>Club President</h3>
+                    <p>John Smith<br>
+                    <a href="mailto:president@modelaclub.org">president@modelaclub.org</a><br>
+                    Phone: (555) 987-6543<br>
+                    <em>General questions about the club and activities</em></p>
+                </div>
+                
+                <!-- Technical support contact -->
+                <div class="contact-card">
+                    <i class="fas fa-headset"></i>
+                    <h3>Website Support</h3>
+                    <p>Web Team<br>
+                    <a href="mailto:webmaster@modelaclub.org">webmaster@modelaclub.org</a><br>
+                    <em>Technical issues with the application form</em></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer with additional links and information -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <!-- About the club footer section -->
+                <div class="footer-section">
+                    <h3>About Our Club</h3>
+                    <p>The Ford Model A Club has been bringing together enthusiasts of Henry Ford's successor to the Model T since 1985. We're dedicated to preserving, restoring, and enjoying these remarkable automobiles.</p>
+                    <div class="social-links">
+                        <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+                        <a href="#" title="Email"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Quick links footer section -->
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <p><a href="index.html#events">Upcoming Events</a></p>
+                    <p><a href="membership.html">Membership Info</a></p>
+                    <p><a href="index.html#gallery">Photo Gallery</a></p>
+                    <p><a href="/newsletter">Newsletter Archive</a></p>
+                    <p><a href="/bylaws">Club Bylaws</a></p>
+                    <p><a href="/resources">Technical Resources</a></p>
+                </div>
+                
+                <!-- Resources footer section -->
+                <div class="footer-section">
+                    <h3>Model A Resources</h3>
+                    <p><a href="/parts-suppliers">Parts Suppliers</a></p>
+                    <p><a href="/restoration-guides">Restoration Guides</a></p>
+                    <p><a href="/maintenance-tips">Maintenance Tips</a></p>
+                    <p><a href="/history">Model A History</a></p>
+                    <p><a href="/technical-library">Technical Library</a></p>
+                    <p><a href="/swap-meet">Parts Swap Meet</a></p>
+                </div>
+                
+                <!-- Contact footer section -->
+                <div class="footer-section">
+                    <h3>Get In Touch</h3>
+                    <p><i class="fas fa-envelope"></i> info@modelaclub.org</p>
+                    <p><i class="fas fa-phone"></i> (555) 123-4567</p>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Main Street<br>Your City, ST 12345</p>
+                    <p><strong>Next Meeting:</strong><br>Third Saturday of each month<br>10:00 AM at Community Center</p>
+                </div>
+            </div>
+            
+            <!-- Copyright and additional footer info -->
+            <div class="footer-bottom">
+                <p>&copy; 2025 Ford Model A Club. All rights reserved. | 
+                <a href="/privacy">Privacy Policy</a> | 
+                <a href="/terms">Terms of Service</a> | 
+                <a href="/accessibility">Accessibility</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for membership form functionality -->
+    <script>
+        // ===== SUPABASE CONFIGURATION =====
+        let supabase = initializeSupabase();
+
+        // ===== MEMBERSHIP FORM FUNCTIONS =====
+        
+        /**
+         * Function to handle membership form submission to database
+         * This is the corrected version that matches your database schema exactly
+         */
+        async function handleMembershipSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            const form = event.target;
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('formMessage');
+            
+            // Show loading state
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Clear any previous messages
+                messageDiv.innerHTML = '';
+                
+                if (!isSupabaseConfigured()) {
+                    // Demo mode - show success message without saving
+                    messageDiv.innerHTML = '<div class="success-message">Demo Mode: Form would be saved to database with real Supabase credentials!</div>';
+                    form.reset();
+                    document.getElementById('modelADetails').style.display = 'none';
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                // Collect form data
+                const formData = new FormData(form);
+                
+                // Build member data object matching your EXACT database schema
+                const memberData = {
+                    // Required fields (NOT NULL in database)
+                    first_name: formData.get('first_name')?.trim(),
+                    last_name: formData.get('last_name')?.trim(), 
+                    email: formData.get('email')?.trim(),
+                    
+                    // Optional fields with defaults in database
+                    phone: formData.get('phone')?.trim() || null,
+                    membership_type: formData.get('membership_type') || 'individual',
+                    
+                    // Model A ownership - convert select value to boolean
+                    model_a_owned: formData.get('model_a_owned') === 'true',
+                    
+                    // Model A details (only populated if they own one)
+                    model_year: formData.get('model_year')?.trim() || null,
+                    body_style: formData.get('body_style')?.trim() || null,
+                    
+                    // Experience and preferences
+                    experience_level: formData.get('experience_level') || 'beginner',
+                    interests: formData.get('interests')?.trim() || null,
+                    how_heard: formData.get('how_heard') || null,
+                    
+                    // Newsletter signup - handle checkbox (defaults to true in DB)
+                    newsletter_signup: formData.has('newsletter_signup'),
+                    
+                    // Status defaults to 'pending' in database, no need to set
+                    // join_date defaults to CURRENT_DATE in database, no need to set
+                    // created_at defaults to now() in database, no need to set
+                };
+                
+                // Validate required fields before submission
+                if (!memberData.first_name) {
+                    throw new Error('First name is required');
+                }
+                if (!memberData.last_name) {
+                    throw new Error('Last name is required');
+                }
+                if (!memberData.email) {
+                    throw new Error('Email address is required');
+                }
+                
+                // Validate email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(memberData.email)) {
+                    throw new Error('Please enter a valid email address');
+                }
+                
+                console.log('Submitting member data:', memberData); // Debug log
+                
+                // Insert new member into database
+                const { data, error } = await supabase
+                    .from('members')
+                    .insert([memberData])
+                    .select();
+                
+                if (error) {
+                    console.error('Supabase error details:', error);
+                    throw error;
+                }
+                
+                console.log('✅ Success! Member created:', data); // Debug log
+                
+                // Show success message with member details
+                messageDiv.innerHTML = `
+                    <div class="success-message">
+                        <i class="fas fa-check-circle"></i> 
+                        <strong>Thank you for your membership application!</strong><br>
+                        <strong>Application ID:</strong> ${data[0].id}<br>
+                        <strong>Email:</strong> ${memberData.email}<br>
+                        <strong>Membership Type:</strong> ${memberData.membership_type}<br><br>
+                        We will review your submission and contact you within 2-3 business days.
+                    </div>
+                `;
+                
+                // Reset form
+                form.reset();
+                document.getElementById('modelADetails').style.display = 'none';
+                
+                // Scroll to success message
+                messageDiv.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('Error submitting membership:', error);
+                
+                // Show specific error messages based on error type
+                let errorMessage = 'Sorry, there was an error submitting your application. ';
+                
+                if (error.message.includes('duplicate key') || error.message.includes('members_email_key')) {
+                    errorMessage = 'An account with this email address already exists. Please use a different email or contact us if you need help.';
+                } else if (error.message.includes('violates not-null constraint')) {
+                    errorMessage = 'Please fill in all required fields (marked with *).';
+                } else if (error.message.includes('permission denied') || error.message.includes('RLS')) {
+                    errorMessage = 'Database permission error. Please contact our webmaster for assistance.';
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    errorMessage = 'Network connection error. Please check your internet connection and try again.';
+                } else if (error.message.includes('required')) {
+                    errorMessage = error.message; // Use our custom validation message
+                } else {
+                    errorMessage += 'Please try again or contact us directly at membership@modelaclub.org';
+                }
+                
+                messageDiv.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Submission Error</strong><br>
+                        ${errorMessage}
+                    </div>
+                `;
+                
+                // Scroll to error message
+                messageDiv.scrollIntoView({ behavior: 'smooth' });
+                
+            } finally {
+                // Reset button state
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        // ===== MEMBERSHIP TYPE SELECTION =====
+        
+        /**
+         * Function to select membership type from pricing cards
+         * @param {string} type - The membership type selected
+         */
+        function selectMembershipType(type) {
+            const membershipSelect = document.getElementById('membershipType');
+            membershipSelect.value = type;
+            
+            // Scroll to the application form
+            document.getElementById('application').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+            
+            // Highlight the form briefly
+            const form = document.getElementById('membershipForm');
+            form.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.5)';
+            setTimeout(() => {
+                form.style.boxShadow = '';
+            }, 2000);
+        }
+
+        // ===== UI INTERACTION FUNCTIONS =====
+        
+        /**
+         * Mobile menu toggle functionality
+         */
+        function toggleMobileMenu() {
+            const menu = document.querySelector('.nav-menu');
+            const button = document.querySelector('.mobile-menu-toggle');
+            
+            // Toggle active class to show/hide mobile menu
+            menu.classList.toggle('active');
+            
+            // Change hamburger icon to X when menu is open
+            const icon = button.querySelector('i');
+            if (menu.classList.contains('active')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        }
+
+        /**
+         * Close mobile menu when clicking on a menu link
+         */
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                const menu = document.querySelector('.nav-menu');
+                const button = document.querySelector('.mobile-menu-toggle');
+                const icon = button.querySelector('i');
+                
+                // Close menu and reset icon
+                menu.classList.remove('active');
+                icon.className = 'fas fa-bars';
+            });
+        });
+
+        /**
+         * Show/hide Model A details based on ownership selection
+         */
+        function toggleModelADetails() {
+            const select = document.getElementById('modelAOwned');
+            const details = document.getElementById('modelADetails');
+            
+            // Show details section if user owns or is restoring a Model A
+            if (select.value === 'true' || select.value === 'restoring') {
+                details.style.display = 'block';
+                // Make fields required when visible
+                document.getElementById('modelYear').required = false; // Optional in your DB
+                document.getElementById('bodyStyle').required = false; // Optional in your DB
+            } else {
+                details.style.display = 'none';
+                // Remove required attribute when hidden
+                document.getElementById('modelYear').required = false;
+                document.getElementById('bodyStyle').required = false;
+            }
+        }
+
+        /**
+         * Add scroll effect to header (darken when scrolled)
+         */
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                header.style.backdropFilter = 'blur(10px)';
+            } else {
+                header.style.backgroundColor = '#ffffff';
+                header.style.backdropFilter = 'none';
+            }
+        });
+
+        /**
+         * Form validation enhancements
+         */
+        document.querySelectorAll('input[required], select[required]').forEach(field => {
+            field.addEventListener('invalid', function(e) {
+                // Custom validation messages
+                if (this.validity.valueMissing) {
+                    this.setCustomValidity('This field is required');
+                } else if (this.validity.typeMismatch && this.type === 'email') {
+                    this.setCustomValidity('Please enter a valid email address');
+                }
+            });
+            
+            field.addEventListener('input', function() {
+                // Clear custom validation message when user starts typing
+                this.setCustomValidity('');
+            });
+        });
+
+        // ===== PAGE INITIALIZATION =====
+        
+        /**
+         * Initialize membership page when DOM is loaded
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up form submission handler
+            const membershipForm = document.getElementById('membershipForm');
+            if (membershipForm) {
+                membershipForm.addEventListener('submit', handleMembershipSubmit);
+            }
+            
+            // Show configuration warning if needed
+            if (!isSupabaseConfigured()) {
+                console.warn('🔧 SETUP REQUIRED: Please configure your Supabase credentials.');
+                console.warn('📍 Look for SUPABASE_URL and SUPABASE_ANON_KEY variables and replace with your actual values.');
+            }
+            
+            console.log('📝 Membership application page loaded successfully!');
+            console.log('🔗 Database connection:', isSupabaseConfigured() ? 'Configured' : 'Demo mode');
+        });
+
+        // ===== DEBUG FUNCTION FOR TESTING =====
+        
+        /**
+         * Debug function to test database connection
+         * Remove this in production
+         */
+        async function testDatabaseConnection() {
+            console.log('🔍 Testing database connection...');
+            
+            try {
+                // Test 1: Check if we can connect and count members
+                console.log('Test 1: Checking basic connection...');
+                const { count, error: countError } = await supabase
+                    .from('members')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (countError) {
+                    console.error('❌ Count test failed:', countError);
+                    alert('❌ Database connection failed: ' + countError.message);
+                    return;
+                }
+                
+                console.log('✅ Basic connection successful. Current member count:', count);
+                
+                // Test 2: Try inserting a test member
+                console.log('Test 2: Testing member insertion...');
+                const testMember = {
+                    first_name: 'Test',
+                    last_name: 'User' + Date.now(),
+                    email: 'test' + Date.now() + '@example.com',
+                    membership_type: 'individual',
+                    model_a_owned: false,
+                    experience_level: 'beginner',
+                    newsletter_signup: true
+                };
+                
+                const { data: insertData, error: insertError } = await supabase
+                    .from('members')
+                    .insert([testMember])
+                    .select();
+                
+                if (insertError) {
+                    console.error('❌ Insert test failed:', insertError);
+                    alert('❌ Insert failed: ' + insertError.message + '\n\nThis is likely a permissions issue. Check Row Level Security policies.');
+                    return;
+                }
+                
+                console.log('✅ Insert test successful:', insertData);
+                
+                // Test 3: Clean up test data
+                const { error: deleteError } = await supabase
+                    .from('members')
+                    .delete()
+                    .eq('id', insertData[0].id);
+                
+                if (deleteError) {
+                    console.warn('⚠️ Could not delete test record:', deleteError);
+                } else {
+                    console.log('✅ Test cleanup successful');
+                }
+                
+                alert('✅ All database tests passed! Your form should work correctly now.');
+                
+            } catch (error) {
+                console.error('❌ Connection test failed:', error);
+                alert('❌ Connection test failed: ' + error.message);
+            }
+        }
+
+        // Add debug button when page loads (remove in production)
+        window.addEventListener('load', function() {
+            if (isSupabaseConfigured()) {
+                const debugButton = document.createElement('button');
+                debugButton.innerHTML = '🔍 Test Database';
+                debugButton.onclick = testDatabaseConnection;
+                debugButton.style.cssText = `
+                    position: fixed; 
+                    top: 10px; 
+                    right: 10px; 
+                    z-index: 9999; 
+                    background: #e74c3c; 
+                    color: white; 
+                    border: none; 
+                    padding: 10px; 
+                    border-radius: 5px; 
+                    cursor: pointer;
+                    font-size: 12px;
+                `;
+                document.body.appendChild(debugButton);
+                
+                // Auto-remove after 10 seconds
+                setTimeout(() => {
+                    if (debugButton.parentNode) {
+                        debugButton.parentNode.removeChild(debugButton);
+                    }
+                }, 10000);
+            }
+        });
+    </script>
+</body>
+</html>

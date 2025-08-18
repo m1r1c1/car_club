@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper responsive behavior and SEO -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Users Management - Ford Model A Club Admin</title>
+    
+    <!-- Font imports for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS FILES -->
+    <link rel="stylesheet" href="styles.css">           <!-- Base styles -->
+    <link rel="stylesheet" href="admin.css">            <!-- Admin styles -->
+    <link rel="stylesheet" href="admin-users.css">      <!-- Users-specific styles -->
+    
+    <!-- Supabase JavaScript Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- IMPORTANT: Load shared configuration first -->
+    <script src="config.js"></script>
+    <script src="session.js"></script>              <!-- Shared configuration -->
+    <script src="session_all"></script>              <!-- Shared configuration -->
+    <script src="session_other"></script>              <!-- Shared configuration -->
+    
+</head>
+<body>
+    <!-- Admin header with navigation -->
+    <header class="admin-header">
+        <div class="container">
+            <nav class="admin-nav">
+                <a href="admin-dashboard.html" class="admin-logo">
+                    <i class="fas fa-car-side"></i>
+                    <span>Club Admin</span>
+                </a>
+                <div class="breadcrumb">
+                    <a href="admin-dashboard.html">Dashboard</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Admin Users Management</span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main admin content area -->
+    <div class="container">
+        <div class="admin-main">
+            <!-- Page header with title and actions -->
+            <div class="page-header">
+                <h1 class="page-title">Admin Users Management</h1>
+                <div>
+                    <button class="btn btn-primary" onclick="showAddUserModal()">
+                        <i class="fas fa-user-plus"></i> Add Admin User
+                    </button>
+                    <button class="btn btn-info" onclick="exportUsers()">
+                        <i class="fas fa-download"></i> Export List
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Filter controls for admin users -->
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="roleFilter">Role:</label>
+                    <select id="roleFilter" onchange="filterUsers()">
+                        <option value="">All Roles</option>
+                        <option value="super_admin">Super Admin</option>
+                        <option value="admin">Admin</option>
+                        <option value="moderator">Moderator</option>
+                        <option value="editor">Editor</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="statusFilter">Status:</label>
+                    <select id="statusFilter" onchange="filterUsers()">
+                        <option value="">All Users</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="activityFilter">Activity:</label>
+                    <select id="activityFilter" onchange="filterUsers()">
+                        <option value="">All Users</option>
+                        <option value="recent">Recently Active</option>
+                        <option value="inactive">Not Logged In Recently</option>
+                        <option value="never">Never Logged In</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchFilter">Search:</label>
+                    <input type="text" id="searchFilter" placeholder="Username, email, or name..." onkeyup="filterUsers()">
+                </div>
+            </div>
+            
+            <!-- Users content area -->
+            <div id="usersContent">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Add Admin User</h3>
+                <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
+            </div>
+            
+            <form id="userForm" onsubmit="saveUser(event)">
+                <input type="hidden" id="userId" value="">
+                
+                <!-- Username and basic info -->
+                <div class="form-group">
+                    <label for="username">Username *</label>
+                    <input type="text" id="username" name="username" required maxlength="50" 
+                           placeholder="Enter unique username" pattern="[a-zA-Z0-9_]+" 
+                           title="Username can only contain letters, numbers, and underscores">
+                    <small class="form-help">Username must be unique and contain only letters, numbers, and underscores</small>
+                </div>
+                
+                <!-- Password fields (only show for new users or password reset) -->
+                <div id="passwordFields">
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <input type="password" id="password" name="password" minlength="8" 
+                               placeholder="Enter secure password">
+                        <small class="form-help">Minimum 8 characters required</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password *</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" 
+                               placeholder="Confirm password">
+                    </div>
+                </div>
+                
+                <!-- Personal information -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="full_name" maxlength="255" 
+                               placeholder="Enter full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" maxlength="255" 
+                               placeholder="Enter email address">
+                    </div>
+                </div>
+                
+                <!-- Role and status -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userRole">Role *</label>
+                        <select id="userRole" name="role" required>
+                            <option value="admin">Admin</option>
+                            <option value="moderator">Moderator</option>
+                            <option value="editor">Editor</option>
+                            <option value="super_admin">Super Admin</option>
+                        </select>
+                        <small class="form-help">Super Admin has full system access</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="isActive" name="is_active" value="true" checked>
+                            Active User
+                            <small class="form-help">Inactive users cannot log in</small>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Password reset option for existing users -->
+                <div id="passwordResetOption" style="display: none;">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="resetPassword" onchange="togglePasswordFields()">
+                            Reset Password
+                            <small class="form-help">Check to set a new password for this user</small>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Form action buttons -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="userDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userDetailsModalTitle">User Details</h3>
+                <button class="modal-close" onclick="closeModal('userDetailsModal')">&times;</button>
+            </div>
+            
+            <div id="userDetails" class="user-details">
+                <!-- User details will be populated here -->
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="btn btn-warning" onclick="closeModal('userDetailsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for admin users management functionality -->
+    <script>
+        // ===== GLOBAL VARIABLES =====
+        let supabase = initializeSupabase(); // Initialize Supabase client
+        let allUsers = []; // Store all admin users for filtering
+        let currentEditingUserId = null; // Track which user is being edited
+        let currentUser = null; // Store current logged-in user info
+
+        // ===== ADMIN USERS MANAGEMENT FUNCTIONS =====
+        
+        /**
+         * Function to load all admin users from the database
+         * Handles both real database connection and demo mode
+         */
+        async function loadUsers() {
+            const container = document.getElementById('usersContent');
+            
+            try {
+                // Check if Supabase is configured, if not show demo data
+                if (!isSupabaseConfigured()) {
+                    // Demo admin users data for testing when database is not configured
+                    allUsers = [
+                        {
+                            id: 1,
+                            username: 'admin',
+                            email: 'admin@modelaclub.com',
+                            full_name: 'System Administrator',
+                            role: 'super_admin',
+                            is_active: true,
+                            last_login: '2025-08-17T09:30:00',
+                            created_at: '2025-01-15T10:00:00',
+                            updated_at: '2025-08-17T09:30:00'
+                        },
+                        {
+                            id: 2,
+                            username: 'jdoe_admin',
+                            email: 'john.doe@modelaclub.com',
+                            full_name: 'John Doe',
+                            role: 'admin',
+                            is_active: true,
+                            last_login: '2025-08-15T14:20:00',
+                            created_at: '2025-02-10T11:15:00',
+                            updated_at: '2025-08-15T14:20:00'
+                        },
+                        {
+                            id: 3,
+                            username: 'mary_mod',
+                            email: 'mary.smith@modelaclub.com',
+                            full_name: 'Mary Smith',
+                            role: 'moderator',
+                            is_active: true,
+                            last_login: '2025-08-10T16:45:00',
+                            created_at: '2025-03-05T09:30:00',
+                            updated_at: '2025-08-10T16:45:00'
+                        },
+                        {
+                            id: 4,
+                            username: 'editor_bob',
+                            email: 'bob.wilson@modelaclub.com',
+                            full_name: 'Bob Wilson',
+                            role: 'editor',
+                            is_active: false,
+                            last_login: null,
+                            created_at: '2025-07-20T13:10:00',
+                            updated_at: '2025-07-20T13:10:00'
+                        }
+                    ];
+                    // Set current user for demo (usually would come from session)
+                    currentUser = allUsers[0];
+                    displayUsers(allUsers);
+                    return;
+                }
+                
+                // Fetch admin users from Supabase database ordered by creation date
+                const { data: users, error } = await supabase
+                    .from('admin_users')
+                    .select('id, username, email, full_name, role, is_active, last_login, created_at, updated_at')
+                    .order('created_at', { ascending: false });
+                
+                // Handle any database errors
+                if (error) throw error;
+                
+                // Store users globally and display them
+                allUsers = users || [];
+                displayUsers(allUsers);
+                
+            } catch (error) {
+                console.error('Error loading admin users:', error);
+                container.innerHTML = '<div class="message error">Error loading admin users. Please try again.</div>';
+            }
+        }
+        
+        /**
+         * Function to display admin users in a table format
+         * @param {Array} users - Array of user objects to display
+         */
+        function displayUsers(users) {
+            const container = document.getElementById('usersContent');
+            
+            // Check if there are users to display
+            if (users && users.length > 0) {
+                let tableHTML = `
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Last Login</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Loop through each user and create table rows
+                users.forEach(user => {
+                    const lastLogin = user.last_login ? 
+                        formatLastLogin(user.last_login) : 
+                        '<span class="never-logged-in">Never</span>';
+                    
+                    // Format role with appropriate styling
+                    const roleDisplay = formatRoleDisplay(user.role);
+                    
+                    // Format status with appropriate styling
+                    const statusDisplay = user.is_active ? 
+                        '<span class="status-active">Active</span>' : 
+                        '<span class="status-inactive">Inactive</span>';
+                    
+                    // Determine if this is the current user for special styling
+                    const isCurrentUser = currentUser && user.id === currentUser.id;
+                    const userRowClass = isCurrentUser ? 'current-user-row' : '';
+                    
+                    // Determine if user is recently active (within last 7 days)
+                    const isRecentlyActive = user.last_login && 
+                        new Date(user.last_login) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                    const activityClass = isRecentlyActive ? 'recently-active' : '';
+                    
+                    tableHTML += `
+                        <tr class="${userRowClass} ${activityClass}">
+                            <td>
+                                <strong>${user.username}</strong>
+                                ${isCurrentUser ? '<span class="current-user-badge">You</span>' : ''}
+                            </td>
+                            <td>${user.full_name || 'Not provided'}</td>
+                            <td>${user.email || 'Not provided'}</td>
+                            <td>${roleDisplay}</td>
+                            <td>${statusDisplay}</td>
+                            <td>${lastLogin}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" onclick="viewUser(${user.id})" title="View Details">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})" title="Edit User">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    ${user.is_active ? 
+                                        `<button class="btn btn-sm btn-warning" onclick="toggleUserStatus(${user.id}, false)" title="Deactivate User">
+                                            <i class="fas fa-user-slash"></i> Deactivate
+                                        </button>` : 
+                                        `<button class="btn btn-sm btn-success" onclick="toggleUserStatus(${user.id}, true)" title="Activate User">
+                                            <i class="fas fa-user-check"></i> Activate
+                                        </button>`
+                                    }
+                                    ${!isCurrentUser ? 
+                                        `<button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})" title="Delete User">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>` : 
+                                        `<span class="btn btn-sm btn-secondary disabled" title="Cannot delete your own account">
+                                            <i class="fas fa-shield-alt"></i> Protected
+                                        </span>`
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += '</tbody></table></div>';
+                container.innerHTML = tableHTML;
+            } else {
+                // Display message when no users match the filter criteria
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 3rem;">
+                        <i class="fas fa-users-cog" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem;">No Admin Users Found</h3>
+                        <p style="color: #666; margin-bottom: 2rem;">No users match your current filter criteria.</p>
+                        <button class="btn btn-primary" onclick="clearFilters()">
+                            <i class="fas fa-filter"></i> Clear Filters
+                        </button>
+                        <button class="btn btn-secondary" onclick="showAddUserModal()" style="margin-left: 1rem;">
+                            <i class="fas fa-user-plus"></i> Add First User
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        /**
+         * Function to filter admin users based on selected criteria
+         * Applies multiple filters simultaneously
+         */
+        function filterUsers() {
+            const roleFilter = document.getElementById('roleFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const activityFilter = document.getElementById('activityFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let filteredUsers = allUsers.filter(user => {
+                // Filter by role
+                if (roleFilter && user.role !== roleFilter) return false;
+                
+                // Filter by status (active/inactive)
+                if (statusFilter && user.is_active.toString() !== statusFilter) return false;
+                
+                // Filter by activity level
+                if (activityFilter) {
+                    const now = new Date();
+                    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    
+                    switch (activityFilter) {
+                        case 'recent':
+                            if (!user.last_login || new Date(user.last_login) < sevenDaysAgo) return false;
+                            break;
+                        case 'inactive':
+                            if (!user.last_login || new Date(user.last_login) >= sevenDaysAgo) return false;
+                            break;
+                        case 'never':
+                            if (user.last_login) return false;
+                            break;
+                    }
+                }
+                
+                // Search filter (username, email, or full name)
+                if (searchFilter) {
+                    const username = user.username.toLowerCase();
+                    const email = (user.email || '').toLowerCase();
+                    const fullName = (user.full_name || '').toLowerCase();
+                    if (!username.includes(searchFilter) && 
+                        !email.includes(searchFilter) && 
+                        !fullName.includes(searchFilter)) return false;
+                }
+                
+                return true;
+            });
+            
+            displayUsers(filteredUsers);
+        }
+        
+        /**
+         * Function to clear all applied filters
+         */
+        function clearFilters() {
+            document.getElementById('roleFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('activityFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            displayUsers(allUsers);
+        }
+        
+        /**
+         * Function to show the add user modal
+         */
+        function showAddUserModal() {
+            const modal = document.getElementById('userModal');
+            const modalTitle = document.getElementById('userModalTitle');
+            const form = document.getElementById('userForm');
+            const passwordFields = document.getElementById('passwordFields');
+            const passwordResetOption = document.getElementById('passwordResetOption');
+            
+            // Reset form and set title for new user
+            form.reset();
+            document.getElementById('userId').value = '';
+            modalTitle.textContent = 'Add Admin User';
+            currentEditingUserId = null;
+            
+            // Show password fields for new user, hide reset option
+            passwordFields.style.display = 'block';
+            passwordResetOption.style.display = 'none';
+            
+            // Make password required for new users
+            document.getElementById('password').required = true;
+            document.getElementById('confirmPassword').required = true;
+            
+            // Set default values
+            document.getElementById('isActive').checked = true;
+            document.getElementById('userRole').value = 'admin';
+            
+            modal.classList.add('show');
+        }
+        
+        /**
+         * Function to edit an existing admin user
+         * @param {number} userId - ID of the user to edit
+         */
+        async function editUser(userId) {
+            // Find user in demo data or fetch from database
+            if (!isSupabaseConfigured()) {
+                const user = allUsers.find(u => u.id === userId);
+                if (user) {
+                    populateUserForm(user);
+                }
+                return;
+            }
+            
+            try {
+                // Fetch user data from database (excluding password_hash for security)
+                const { data: user, error } = await supabase
+                    .from('admin_users')
+                    .select('id, username, email, full_name, role, is_active, last_login, created_at, updated_at')
+                    .eq('id', userId)
+                    .single();
+                
+                if (error) throw error;
+                
+                populateUserForm(user);
+                
+            } catch (error) {
+                console.error('Error loading user for editing:', error);
+                alert('Error loading user details. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to populate the user form with existing data
+         * @param {Object} user - User object to populate form with
+         */
+        function populateUserForm(user) {
+            const modal = document.getElementById('userModal');
+            const modalTitle = document.getElementById('userModalTitle');
+            const passwordFields = document.getElementById('passwordFields');
+            const passwordResetOption = document.getElementById('passwordResetOption');
+            
+            // Set modal title and current editing ID
+            modalTitle.textContent = 'Edit Admin User';
+            currentEditingUserId = user.id;
+            
+            // Populate form fields with user data
+            document.getElementById('userId').value = user.id;
+            document.getElementById('username').value = user.username;
+            document.getElementById('fullName').value = user.full_name || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('userRole').value = user.role;
+            document.getElementById('isActive').checked = user.is_active;
+            
+            // For editing, hide password fields initially and show reset option
+            passwordFields.style.display = 'none';
+            passwordResetOption.style.display = 'block';
+            
+            // Make password not required for editing (unless reset is checked)
+            document.getElementById('password').required = false;
+            document.getElementById('confirmPassword').required = false;
+            document.getElementById('resetPassword').checked = false;
+            
+            modal.classList.add('show');
+        }
+        
+        /**
+         * Function to toggle password fields when editing users
+         */
+        function togglePasswordFields() {
+            const resetPasswordCheckbox = document.getElementById('resetPassword');
+            const passwordFields = document.getElementById('passwordFields');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            
+            if (resetPasswordCheckbox.checked) {
+                // Show password fields and make them required
+                passwordFields.style.display = 'block';
+                passwordInput.required = true;
+                confirmPasswordInput.required = true;
+                passwordInput.value = '';
+                confirmPasswordInput.value = '';
+            } else {
+                // Hide password fields and make them not required
+                passwordFields.style.display = 'none';
+                passwordInput.required = false;
+                confirmPasswordInput.required = false;
+            }
+        }
+        
+        /**
+         * Function to save admin user (both create and update)
+         * @param {Event} event - Form submission event
+         */
+        async function saveUser(event) {
+            event.preventDefault();
+            
+            const form = document.getElementById('userForm');
+            const formData = new FormData(form);
+            
+            // Validate passwords match if provided
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirm_password');
+            
+            if (password && password !== confirmPassword) {
+                alert('Passwords do not match. Please try again.');
+                return;
+            }
+            
+            // Build user object from form data
+            const userData = {
+                username: formData.get('username'),
+                email: formData.get('email') || null,
+                full_name: formData.get('full_name') || null,
+                role: formData.get('role'),
+                is_active: formData.has('is_active')
+            };
+            
+            // Add password hash if password is provided (in real implementation, hash on server)
+            if (password) {
+                // NOTE: In production, password hashing should be done server-side
+                userData.password_hash = await hashPassword(password);
+            }
+            
+            // Handle demo mode
+            if (!isSupabaseConfigured()) {
+                if (currentEditingUserId) {
+                    // Update existing user in demo data
+                    const userIndex = allUsers.findIndex(u => u.id === currentEditingUserId);
+                    if (userIndex !== -1) {
+                        allUsers[userIndex] = { 
+                            ...allUsers[userIndex], 
+                            ...userData,
+                            updated_at: new Date().toISOString()
+                        };
+                    }
+                    alert('Demo mode - User updated successfully!');
+                } else {
+                    // Add new user to demo data
+                    const newUser = {
+                        id: Math.max(...allUsers.map(u => u.id)) + 1,
+                        ...userData,
+                        last_login: null,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    };
+                    allUsers.unshift(newUser); // Add to beginning for newest first
+                    alert('Demo mode - User added successfully!');
+                }
+                closeModal('userModal');
+                displayUsers(allUsers);
+                return;
+            }
+            
+            try {
+                let result;
+                
+                // Determine if this is an update or create operation
+                if (currentEditingUserId) {
+                    // Update existing user
+                    result = await supabase
+                        .from('admin_users')
+                        .update(userData)
+                        .eq('id', currentEditingUserId);
+                } else {
+                    // Create new user
+                    result = await supabase
+                        .from('admin_users')
+                        .insert([userData]);
+                }
+                
+                // Check for errors in the database operation
+                if (result.error) throw result.error;
+                
+                // Close modal and reload users
+                closeModal('userModal');
+                
+                // Show success message and reload users list
+                const container = document.getElementById('usersContent');
+                const action = currentEditingUserId ? 'updated' : 'created';
+                container.innerHTML = `<div class="message success">User ${action} successfully!</div>`;
+                
+                setTimeout(() => {
+                    loadUsers();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error saving user:', error);
+                if (error.message.includes('admin_users_username_key')) {
+                    alert('Username already exists. Please choose a different username.');
+                } else {
+                    alert('Error saving user. Please try again.');
+                }
+            }
+        }
+        
+        /**
+         * Function to toggle user active status
+         * @param {number} userId - ID of the user to toggle
+         * @param {boolean} newStatus - New active status
+         */
+        async function toggleUserStatus(userId, newStatus) {
+            const action = newStatus ? 'activate' : 'deactivate';
+            
+            if (!confirm(`Are you sure you want to ${action} this user?`)) {
+                return;
+            }
+            
+            // Prevent deactivating current user
+            if (!newStatus && currentUser && userId === currentUser.id) {
+                alert('You cannot deactivate your own account.');
+                return;
+            }
+            
+            // Handle demo mode
+            if (!isSupabaseConfigured()) {
+                const user = allUsers.find(u => u.id === userId);
+                if (user) {
+                    user.is_active = newStatus;
+                    user.updated_at = new Date().toISOString();
+                    alert(`Demo mode - User ${action}d successfully!`);
+                    displayUsers(allUsers);
+                }
+                return;
+            }
+            
+            try {
+                // Update user status in database
+                const { error } = await supabase
+                    .from('admin_users')
+                    .update({ 
+                        is_active: newStatus,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+                
+                if (error) throw error;
+                
+                // Show success message and reload users
+                const container = document.getElementById('usersContent');
+                container.innerHTML = `<div class="message success">User ${action}d successfully!</div>`;
+                
+                setTimeout(() => {
+                    loadUsers();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error updating user status:', error);
+                alert('Error updating user status. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to delete an admin user
+         * @param {number} userId - ID of the user to delete
+         */
+        async function deleteUser(userId) {
+            // Prevent deleting current user
+            if (currentUser && userId === currentUser.id) {
+                alert('You cannot delete your own account.');
+                return;
+            }
+            
+            const user = allUsers.find(u => u.id === userId);
+            const username = user ? user.username : 'this user';
+            
+            if (!confirm(`Are you sure you want to delete ${username}? This action cannot be undone.`)) {
+                return;
+            }
+            
+            // Handle demo mode
+            if (!isSupabaseConfigured()) {
+                allUsers = allUsers.filter(u => u.id !== userId);
+                alert('Demo mode - User deleted successfully!');
+                displayUsers(allUsers);
+                return;
+            }
+            
+            try {
+                // Delete user from database
+                const { error } = await supabase
+                    .from('admin_users')
+                    .delete()
+                    .eq('id', userId);
+                
+                if (error) throw error;
+                
+                // Show success message and reload users
+                const container = document.getElementById('usersContent');
+                container.innerHTML = '<div class="message success">User deleted successfully!</div>';
+                
+                setTimeout(() => {
+                    loadUsers();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert('Error deleting user. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to view admin user details in a modal
+         * @param {number} userId - ID of the user to view
+         */
+        async function viewUser(userId) {
+            // Handle demo mode
+            if (!isSupabaseConfigured()) {
+                const user = allUsers.find(u => u.id === userId);
+                if (user) {
+                    showUserDetails(user);
+                }
+                return;
+            }
+            
+            try {
+                // Fetch user data from database (excluding password_hash for security)
+                const { data: user, error } = await supabase
+                    .from('admin_users')
+                    .select('id, username, email, full_name, role, is_active, last_login, created_at, updated_at')
+                    .eq('id', userId)
+                    .single();
+                
+                if (error) throw error;
+                
+                showUserDetails(user);
+                
+            } catch (error) {
+                console.error('Error loading user details:', error);
+                alert('Error loading user details. Please try again.');
+            }
+        }
+        
+        /**
+         * Function to display user details in modal
+         * @param {Object} user - User object to display
+         */
+        function showUserDetails(user) {
+            const detailsDiv = document.getElementById('userDetails');
+            const modalTitle = document.getElementById('userDetailsModalTitle');
+            
+            modalTitle.textContent = `${user.username} - User Details`;
+            
+            const createdDate = new Date(user.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            const updatedDate = user.updated_at ? 
+                new Date(user.updated_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }) : 'Not updated';
+            
+            const lastLoginFormatted = user.last_login ? 
+                new Date(user.last_login).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'Never logged in';
+            
+            // Calculate account age
+            const accountAge = Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24));
+            
+            // Determine activity status
+            const isRecentlyActive = user.last_login && 
+                new Date(user.last_login) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            const activityStatus = user.last_login ? 
+                (isRecentlyActive ? 'Recently Active' : 'Not Recently Active') : 
+                'Never Logged In';
+            
+            const isCurrentUser = currentUser && user.id === currentUser.id;
+            
+            detailsDiv.innerHTML = `
+                <h4>Account Information</h4>
+                <p><strong>Username:</strong> ${user.username} ${isCurrentUser ? '<span class="current-user-badge">Current User</span>' : ''}</p>
+                <p><strong>Full Name:</strong> ${user.full_name || 'Not provided'}</p>
+                <p><strong>Email:</strong> ${user.email || 'Not provided'}</p>
+                <p><strong>Role:</strong> ${formatRoleDisplay(user.role)}</p>
+                <p><strong>Status:</strong> ${user.is_active ? 
+                    '<span class="status-active">Active</span>' : 
+                    '<span class="status-inactive">Inactive</span>'}</p>
+                
+                <h4>Activity Information</h4>
+                <p><strong>Last Login:</strong> ${lastLoginFormatted}</p>
+                <p><strong>Activity Status:</strong> <span class="activity-${isRecentlyActive ? 'active' : 'inactive'}">${activityStatus}</span></p>
+                
+                <h4>Account Management</h4>
+                <p><strong>Account Created:</strong> ${createdDate}</p>
+                <p><strong>Last Updated:</strong> ${updatedDate}</p>
+                <p><strong>Account Age:</strong> ${accountAge} days</p>
+                
+                <h4>Permissions & Access</h4>
+                <div class="permissions-info">
+                    ${getRolePermissions(user.role)}
+                </div>
+            `;
+            
+            document.getElementById('userDetailsModal').classList.add('show');
+        }
+        
+        /**
+         * Function to get role permissions description
+         * @param {string} role - User role
+         * @returns {string} HTML string with permissions
+         */
+        function getRolePermissions(role) {
+            const permissions = {
+                'super_admin': [
+                    'Full system access',
+                    'Manage all admin users',
+                    'System configuration',
+                    'Data export and backup',
+                    'All content management'
+                ],
+                'admin': [
+                    'Manage members and events',
+                    'Moderate content',
+                    'View reports and analytics',
+                    'Manage club resources'
+                ],
+                'moderator': [
+                    'Moderate user content',
+                    'Manage member applications',
+                    'Basic event management',
+                    'Limited reporting access'
+                ],
+                'editor': [
+                    'Create and edit content',
+                    'Manage news articles',
+                    'Basic member interaction',
+                    'Limited administrative access'
+                ]
+            };
+            
+            const rolePerms = permissions[role] || ['Basic access'];
+            return '<ul>' + rolePerms.map(perm => `<li>${perm}</li>`).join('') + '</ul>';
+        }
+        
+        /**
+         * Function to export admin users list to CSV
+         */
+        function exportUsers() {
+            if (!isSupabaseConfigured()) {
+                alert('Demo mode - would export admin users list to CSV');
+                return;
+            }
+            
+            // Get current filtered users
+            const roleFilter = document.getElementById('roleFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const activityFilter = document.getElementById('activityFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let usersToExport = allUsers;
+            
+            // Apply same filters as display
+            if (roleFilter || statusFilter || activityFilter || searchFilter) {
+                usersToExport = allUsers.filter(user => {
+                    if (roleFilter && user.role !== roleFilter) return false;
+                    if (statusFilter && user.is_active.toString() !== statusFilter) return false;
+                    
+                    // Apply activity filter
+                    if (activityFilter) {
+                        const now = new Date();
+                        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        
+                        switch (activityFilter) {
+                            case 'recent':
+                                if (!user.last_login || new Date(user.last_login) < sevenDaysAgo) return false;
+                                break;
+                            case 'inactive':
+                                if (!user.last_login || new Date(user.last_login) >= sevenDaysAgo) return false;
+                                break;
+                            case 'never':
+                                if (user.last_login) return false;
+                                break;
+                        }
+                    }
+                    
+                    // Apply search filter
+                    if (searchFilter) {
+                        const username = user.username.toLowerCase();
+                        const email = (user.email || '').toLowerCase();
+                        const fullName = (user.full_name || '').toLowerCase();
+                        if (!username.includes(searchFilter) && 
+                            !email.includes(searchFilter) && 
+                            !fullName.includes(searchFilter)) return false;
+                    }
+                    
+                    return true;
+                });
+            }
+            
+            // Create CSV content with proper headers (excluding sensitive data)
+            const headers = [
+                'Username', 'Full Name', 'Email', 'Role', 'Status', 'Last Login', 'Created Date'
+            ];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            // Add each user as a CSV row
+            usersToExport.forEach(user => {
+                const row = [
+                    `"${user.username}"`,
+                    `"${user.full_name || ''}"`,
+                    `"${user.email || ''}"`,
+                    user.role,
+                    user.is_active ? 'Active' : 'Inactive',
+                    user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never',
+                    new Date(user.created_at).toLocaleDateString()
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Download CSV file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin-users-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // ===== MODAL MANAGEMENT FUNCTIONS =====
+        
+        /**
+         * Function to close modals
+         * @param {string} modalId - ID of the modal to close
+         */
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            
+            // Reset editing state when closing user modal
+            if (modalId === 'userModal') {
+                currentEditingUserId = null;
+                // Reset password fields
+                document.getElementById('resetPassword').checked = false;
+                togglePasswordFields();
+            }
+        }
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+                
+                // Reset editing state if user modal was closed
+                if (event.target.id === 'userModal') {
+                    currentEditingUserId = null;
+                }
+            }
+        });
+
+        // ===== UTILITY FUNCTIONS =====
+        
+        /**
+         * Function to format last login time
+         * @param {string} lastLogin - Last login timestamp
+         * @returns {string} Formatted last login string
+         */
+        function formatLastLogin(lastLogin) {
+            if (!lastLogin) return '<span class="never-logged-in">Never</span>';
+            
+            const loginDate = new Date(lastLogin);
+            const now = new Date();
+            const timeDiff = now - loginDate;
+            const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            
+            if (daysDiff === 0) {
+                return '<span class="today-login">Today</span>';
+            } else if (daysDiff === 1) {
+                return '<span class="recent-login">Yesterday</span>';
+            } else if (daysDiff <= 7) {
+                return `<span class="recent-login">${daysDiff} days ago</span>`;
+            } else if (daysDiff <= 30) {
+                return `<span class="old-login">${daysDiff} days ago</span>`;
+            } else {
+                return `<span class="very-old-login">${loginDate.toLocaleDateString()}</span>`;
+            }
+        }
+        
+        /**
+         * Function to format role display with appropriate styling
+         * @param {string} role - User role
+         * @returns {string} Formatted role HTML
+         */
+        function formatRoleDisplay(role) {
+            const roleClasses = {
+                'super_admin': 'role-super-admin',
+                'admin': 'role-admin',
+                'moderator': 'role-moderator',
+                'editor': 'role-editor'
+            };
+            
+            const roleNames = {
+                'super_admin': 'Super Admin',
+                'admin': 'Admin',
+                'moderator': 'Moderator',
+                'editor': 'Editor'
+            };
+            
+            const roleClass = roleClasses[role] || 'role-unknown';
+            const roleName = roleNames[role] || role;
+            
+            return `<span class="role-badge ${roleClass}">${roleName}</span>`;
+        }
+        
+        /**
+         * Function to hash password (simplified for demo - use proper hashing in production)
+         * @param {string} password - Plain text password
+         * @returns {Promise<string>} Hashed password
+         */
+        async function hashPassword(password) {
+            // NOTE: This is a simplified example. In production, use proper password hashing
+            // like bcrypt on the server side, never hash passwords in the browser
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password + 'salt'); // Add proper salt in production
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        /**
+         * Function to get user statistics for dashboard or reporting
+         * @returns {Object} Statistics object with user counts
+         */
+        function getUserStats() {
+            const stats = {
+                total: allUsers.length,
+                active: allUsers.filter(u => u.is_active).length,
+                inactive: allUsers.filter(u => !u.is_active).length,
+                neverLoggedIn: allUsers.filter(u => !u.last_login).length,
+                byRole: {}
+            };
+            
+            // Count users by role
+            allUsers.forEach(user => {
+                const role = user.role;
+                stats.byRole[role] = (stats.byRole[role] || 0) + 1;
+            });
+            
+            // Calculate recently active users (last 7 days)
+            const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            stats.recentlyActive = allUsers.filter(u => 
+                u.last_login && new Date(u.last_login) > sevenDaysAgo
+            ).length;
+            
+            console.log('User Statistics:', stats);
+            return stats;
+        }
+        
+        /**
+         * Function to validate user form data
+         * @param {Object} userData - User data object to validate
+         * @returns {Object} Validation result with isValid boolean and errors array
+         */
+        function validateUserData(userData) {
+            const errors = [];
+            
+            // Check required fields
+            if (!userData.username || userData.username.trim().length === 0) {
+                errors.push('Username is required');
+            }
+            
+            // Validate username format
+            if (userData.username && !/^[a-zA-Z0-9_]+$/.test(userData.username)) {
+                errors.push('Username can only contain letters, numbers, and underscores');
+            }
+            
+            // Validate username length
+            if (userData.username && userData.username.length > 50) {
+                errors.push('Username must be 50 characters or less');
+            }
+            
+            // Validate email format if provided
+            if (userData.email && userData.email.length > 0) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(userData.email)) {
+                    errors.push('Please enter a valid email address');
+                }
+                if (userData.email.length > 255) {
+                    errors.push('Email must be 255 characters or less');
+                }
+            }
+            
+            // Validate full name length if provided
+            if (userData.full_name && userData.full_name.length > 255) {
+                errors.push('Full name must be 255 characters or less');
+            }
+            
+            // Validate role
+            const validRoles = ['super_admin', 'admin', 'moderator', 'editor'];
+            if (!userData.role || !validRoles.includes(userData.role)) {
+                errors.push('Please select a valid role');
+            }
+            
+            return {
+                isValid: errors.length === 0,
+                errors: errors
+            };
+        }
+
+        // ===== INITIALIZATION =====
+        
+        /**
+         * Initialize admin users management when DOM is loaded
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load admin users data from database or demo data
+            loadUsers();
+            
+            // Add form validation on submit
+            document.getElementById('userForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = new FormData(this);
+                const userData = {
+                    username: formData.get('username'),
+                    email: formData.get('email'),
+                    full_name: formData.get('full_name'),
+                    role: formData.get('role'),
+                    is_active: formData.has('is_active')
+                };
+                
+                // Validate form data
+                const validation = validateUserData(userData);
+                
+                if (!validation.isValid) {
+                    alert('Please fix the following errors:\n\n' + validation.errors.join('\n'));
+                    return;
+                }
+                
+                // Check for duplicate username (in demo mode)
+                if (!isSupabaseConfigured() && !currentEditingUserId) {
+                    const existingUser = allUsers.find(u => u.username === userData.username);
+                    if (existingUser) {
+                        alert('Username already exists. Please choose a different username.');
+                        return;
+                    }
+                }
+                
+                // If validation passes, proceed with save
+                saveUser(e);
+            });
+            
+            // Add username validation on input
+            document.getElementById('username').addEventListener('input', function() {
+                const username = this.value;
+                const isValid = /^[a-zA-Z0-9_]*$/.test(username);
+                
+                if (!isValid && username.length > 0) {
+                    this.style.borderColor = '#e74c3c';
+                    this.title = 'Username can only contain letters, numbers, and underscores';
+                } else {
+                    this.style.borderColor = '';
+                    this.title = '';
+                }
+            });
+            
+            // Show configuration warning if needed
+            if (!isSupabaseConfigured()) {
+                console.warn('🔧 SETUP REQUIRED: Please configure your Supabase credentials.');
+                console.warn('📍 Look for SUPABASE_URL and SUPABASE_ANON_KEY variables and replace with your actual values.');
+            }
+            
+            console.log('👥 Admin Users Management page loaded successfully!');
+            console.log('🔗 Database connection:', isSupabaseConfigured() ? 'Configured' : 'Demo mode');
+        });
+    </script>
+</body>
+</html>
