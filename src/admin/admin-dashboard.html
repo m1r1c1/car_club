@@ -4,7 +4,7 @@
     <!-- Meta tags for proper responsive behavior and SEO -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ford Model A Club - Admin Dashboard</title>
+    <title>My Car Club - Admin Dashboard</title>
     
     <!-- Font imports for modern typography -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -13,13 +13,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- EXTERNAL CSS FILES - Load in correct order -->
-    <link rel="stylesheet" href="styles.css">      <!-- Base shared styles -->
-    <link rel="stylesheet" href="admin.css">       <!-- Admin panel styles -->
+    <link rel="stylesheet" href="../css/styles.css">      <!-- Base shared styles -->
+    <link rel="stylesheet" href="../css/admin.css">       <!-- Admin panel styles -->
     
     <!-- JavaScript Libraries and Configuration -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>              <!-- Shared configuration -->
-    <script src="admin-session.js"></script>       <!-- NEW: Session management -->
+    <script src="../js/config.js"></script>              <!-- Shared configuration -->
+    <script src="../js/admin-session.js"></script>       <!-- NEW: Session management -->
     
 </head>
 <body>
@@ -30,7 +30,7 @@
                 <i class="fas fa-car-side" style="font-size: 3rem; color: var(--secondary-color);"></i>
             </div>
             <h1>Admin Login</h1>
-            <p class="subtitle">Ford Model A Club Management</p>
+            <p class="subtitle">My Car Club Management</p>
             
             <!-- Login form -->
             <form id="loginForm">
@@ -83,7 +83,7 @@
             <!-- Dashboard overview -->
             <div class="dashboard-main">
                 <h2>Dashboard Overview</h2>
-                <p class="mb-3">Welcome to the Ford Model A Club administration dashboard. Select a management area below to get started.</p>
+                <p class="mb-3">Welcome to the My Car Club administration dashboard. Select a management area below to get started.</p>
                 
                 <!-- Statistics cards -->
                 <div class="stats-grid">
@@ -651,11 +651,6 @@
                 adminSession.showLoginForm();
             }
             
-            // Log configuration status
-            console.log('🔧 Ford Model A Club Admin Dashboard loaded successfully!');
-            console.log('🔗 Database connection:', isSupabaseConfigured() ? 'Configured' : 'Demo mode');
-            console.log('🔐 Session management: Active');
-            
             // Auto-fill demo credentials in demo mode for easier testing
             if (!isSupabaseConfigured()) {
                 const demoCredentials = getDemoCredentials();
@@ -667,3 +662,4 @@
     </script>
 </body>
 </html>
+
