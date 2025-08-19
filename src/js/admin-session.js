@@ -230,20 +230,22 @@ class AdminSessionManager {
      * FIXED: Removed automatic page reload that caused infinite loops
      * @param {boolean} redirect - Whether to redirect to dashboard after logout
      */
-    logout(redirect = false) {
+    logout(redirect = true) {
         console.log('👋 User logging out:', this.currentUser?.username);
         
         // Clear session data
         this.clearSession();
         
-        // Only redirect if explicitly requested and not already on dashboard
-        if (redirect && !window.location.pathname.includes('admin-dashboard.html')) {
-            console.log('🔄 Redirecting to dashboard after logout');
-            window.location.href = '/src/admin/admin-dashboard.html';
-        } else {
-            // If on dashboard, just show login form without reloading
-            console.log('📝 Showing login form');
-            this.showLoginForm();
+        // More flexible redirect logic
+        if (redirect) {
+            const currentPage = window.location.pathname.split('/').pop();
+            if (currentPage !== 'admin-dashboard.html') {
+                // If not on dashboard, redirect to it
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                // If already on dashboard, just reload to show login form
+                window.location.reload();
+            }
         }
     }
 
@@ -275,7 +277,9 @@ class AdminSessionManager {
         ];
         
         const currentPage = window.location.pathname.split('/').pop();
-        return adminPages.includes(currentPage) || window.location.pathname.includes('/admin');
+        const isAdminPath = window.location.pathname.includes('/admin');
+        
+        return adminPages.includes(currentPage) || isAdminPath;
     }
 
     /**
@@ -284,21 +288,23 @@ class AdminSessionManager {
      * Call this function on each admin page to ensure proper UI state
      */
     protectPage() {
-        // Only proceed if page requires authentication
-        if (!this.requiresAuthentication()) {
-            return true; // Page doesn't require auth
-        }
-        
-        // Check if user is authenticated
-        if (this.isAuthenticated()) {
-            console.log('✅ User authenticated, showing admin content');
-            this.showAdminContent();
-            return true;
-        } else {
-            console.log('❌ User not authenticated, showing login form');
+        if (this.requiresAuthentication() && !this.isAuthenticated()) {
+            console.log('🚫 Access denied - redirecting to login');
+            
+            // More flexible redirect logic
+            const currentPage = window.location.pathname.split('/').pop();
+            if (currentPage !== 'admin-dashboard.html') {
+                window.location.href = 'admin-dashboard.html';
+                return false;
+            }
+            
+            // If on dashboard, ensure login form is shown
             this.showLoginForm();
             return false;
         }
+        
+        // User is authenticated or page doesn't require auth
+        return true;
     }
 
     /**
