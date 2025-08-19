@@ -12,24 +12,107 @@ body {
 
 /* ===== LOGIN SCREEN ===== */
 
+/* 
+ * MINIMAL CSS MODIFICATIONS FOR PERFECT LOGIN CENTERING
+ * 
+ * Replace the existing .login-container and .login-card rules in your admin.css file
+ * with these updated versions to ensure perfect horizontal and vertical centering
+ */
+
+/* ===== UPDATED LOGIN SCREEN STYLES ===== */
+
 .login-container {
+    /* Perfect centering with flexbox */
     display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    justify-content: center;    /* Center horizontally */
+    align-items: center;        /* Center vertically */
+    
+    /* Full viewport coverage */
+    min-height: 100vh;         /* Full viewport height */
+    height: 100vh;             /* Fixed height to ensure centering works */
+    width: 100vw;              /* Full viewport width */
+    
+    /* Positioning and layering */
+    position: fixed;           /* Fixed positioning to cover entire screen */
+    top: 0;
+    left: 0;
+    z-index: 1000;            /* Ensure it's above other content */
+    
+    /* Background styling */
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    
+    /* Responsive padding */
     padding: var(--spacing-md);
+    box-sizing: border-box;    /* Include padding in width/height calculations */
 }
 
 .login-card {
+    /* Card styling */
     background: var(--white);
     padding: 3rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-hover);
+    
+    /* Size constraints */
     width: 100%;
-    max-width: 400px;
+    max-width: 400px;          /* Maximum width for larger screens */
+    min-width: 300px;          /* Minimum width for mobile */
+    
+    /* Content alignment */
     text-align: center;
+    
+    /* Animation */
     animation: slideInUp 0.5s ease;
+    
+    /* Prevent overflow on small screens */
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Keep the existing slideInUp animation unchanged */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 1rem;         /* Reduced padding on mobile */
+    }
+    
+    .login-card {
+        margin: 0;             /* Remove any inherited margins */
+        padding: 2rem;         /* Reduced padding on mobile */
+        min-width: 280px;      /* Smaller minimum width for very small screens */
+    }
+}
+
+/* Very small screen adjustments */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 1.5rem;
+        min-width: 260px;
+    }
+}
+
+/* Landscape orientation on mobile devices */
+@media (max-height: 600px) and (orientation: landscape) {
+    .login-container {
+        height: 100vh;         /* Ensure full height even in landscape */
+        padding: 0.5rem;       /* Minimal padding in landscape */
+    }
+    
+    .login-card {
+        padding: 1.5rem;
+        max-height: 95vh;      /* Allow more height usage in landscape */
+    }
 }
 
 .login-card h1 {
