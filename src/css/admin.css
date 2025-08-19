@@ -22,51 +22,57 @@ body {
 /* ===== UPDATED LOGIN SCREEN STYLES ===== */
 
 .login-container {
-    /* Perfect centering with flexbox */
-    display: flex;
-    justify-content: center;    /* Center horizontally */
-    align-items: center;        /* Center vertically */
+    /* Force flexbox centering with !important */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
     
-    /* Full viewport coverage */
-    min-height: 100vh;         /* Full viewport height */
-    height: 100vh;             /* Fixed height to ensure centering works */
-    width: 100vw;              /* Full viewport width */
+    /* Force full viewport coverage */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
     
-    /* Positioning and layering */
-    position: fixed;           /* Fixed positioning to cover entire screen */
-    top: 0;
-    left: 0;
-    z-index: 1000;            /* Ensure it's above other content */
+    /* Reset any inherited margins/padding */
+    margin: 0 !important;
+    padding: 20px !important;
     
-    /* Background styling */
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    /* Ensure proper box model */
+    box-sizing: border-box !important;
     
-    /* Responsive padding */
-    padding: var(--spacing-md);
-    box-sizing: border-box;    /* Include padding in width/height calculations */
+    /* Background */
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+    
+    /* Layering */
+    z-index: 9999 !important;
 }
 
 .login-card {
-    /* Card styling */
-    background: var(--white);
-    padding: 3rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-hover);
+    /* Force card positioning */
+    position: relative !important;
     
     /* Size constraints */
-    width: 100%;
-    max-width: 400px;          /* Maximum width for larger screens */
-    min-width: 300px;          /* Minimum width for mobile */
+    width: 100% !important;
+    max-width: 400px !important;
+    min-width: 300px !important;
+    
+    /* Reset any conflicting positioning */
+    margin: 0 auto !important;
+    padding: 3rem !important;
+    
+    /* Card styling */
+    background: var(--white) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-hover) !important;
     
     /* Content alignment */
-    text-align: center;
+    text-align: center !important;
     
     /* Animation */
-    animation: slideInUp 0.5s ease;
-    
-    /* Prevent overflow on small screens */
-    max-height: 90vh;
-    overflow-y: auto;
+    animation: slideInUp 0.5s ease !important;
 }
 
 /* Keep the existing slideInUp animation unchanged */
