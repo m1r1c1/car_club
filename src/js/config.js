@@ -1,4 +1,4 @@
-// ===== FORD MODEL A CLUB - SHARED CONFIGURATION =====
+// ===== MY CAR CLUB - SHARED CONFIGURATION =====
 // This file contains all configuration settings for the website and admin panel
 // Update your Supabase credentials here and they will be used across all pages
 
@@ -13,11 +13,11 @@ const CONFIG = {
     SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kb3FzYnZzZ2Zva2t5Z3F2b2xlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0NTA2NTAsImV4cCI6MjA3MTAyNjY1MH0._tMhn6v3pvyC7W6VnvVOm3Pr4Fnq5e-vt4My6jorR3w',
     
     // Website configuration
-    SITE_NAME: 'Ford Model A Club',
-    SITE_DESCRIPTION: 'Ford Model A enthusiasts community',
+    SITE_NAME: 'My Car Club',
+    SITE_DESCRIPTION: 'Car enthusiasts community',
     
     // Admin configuration
-    ADMIN_EMAIL: 'admin@modelaclub.org',
+    ADMIN_EMAIL: 'admin@mycardclub.org',
     
     // Demo mode settings (used when Supabase is not configured)
     DEMO_MODE: {
@@ -28,12 +28,12 @@ const CONFIG = {
     
     // Club information
     CLUB_INFO: {
-        name: 'Ford Model A Club',
-        foundedYear: 1985,
+        name: 'My Car Club',
+        foundedYear: 2025,
         meetingLocation: 'Community Center',
         meetingAddress: '123 Main Street, Your City, ST 12345',
         meetingTime: 'Third Saturday of each month, 10:00 AM',
-        contactEmail: 'info@modelaclub.org',
+        contactEmail: 'info@mycarclub.org',
         contactPhone: '(555) 123-4567'
     },
     
@@ -42,7 +42,7 @@ const CONFIG = {
         facebook: '#',
         instagram: '#',
         youtube: '#',
-        email: 'info@modelaclub.org'
+        email: 'info@mycarclub.org'
     }
 };
 
@@ -71,19 +71,6 @@ function getDemoCredentials() {
         username: CONFIG.DEMO_MODE.adminUsername,
         password: CONFIG.DEMO_MODE.adminPassword
     };
-}
-
-// Function to log configuration status
-function logConfigStatus() {
-    console.log('🔧 Ford Model A Club Configuration:');
-    console.log('📊 Supabase:', isSupabaseConfigured() ? 'Configured' : 'Demo Mode');
-    console.log('🏢 Club:', CONFIG.CLUB_INFO.name);
-    console.log('📧 Contact:', CONFIG.CLUB_INFO.contactEmail);
-    
-    if (!isSupabaseConfigured()) {
-        console.warn('⚠️  SETUP REQUIRED: Configure your Supabase credentials in config.js');
-        console.warn('🔑 Demo login:', getDemoCredentials());
-    }
 }
 
 // ===== UTILITY FUNCTIONS =====
