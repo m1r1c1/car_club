@@ -23,37 +23,12 @@
 
     <!-- IMPORTANT: Load shared configuration first -->
     <script src="../js/config.js"></script>
+
+    <!-- Component loader script - loads header and footer automatically -->
+    <script src="../js/load-components.js"></script>
     
 </head>
 <body>
-    <!-- Fixed navigation header -->
-    <header class="header">
-        <div class="container">
-            <nav class="nav-container">
-                <!-- Logo with car icon -->
-                <a href="#" class="logo">
-                    <i class="fas fa-car-side"></i>
-                    <span>My Car Club</span>
-                </a>
-                
-                <!-- Desktop navigation menu -->
-                <ul class="nav-menu">
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#events">Events</a></li>
-                    <li><a href="#news">News</a></li>
-                    <li><a href="#gallery">Gallery</a></li>
-                    <li><a href="#membership">Join Us</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-                
-                <!-- Mobile menu toggle button -->
-                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </nav>
-        </div>
-    </header>
 
     <!-- Hero section with club introduction -->
     <section class="hero" id="home">
@@ -327,64 +302,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Footer with additional links and information -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <!-- About the club footer section -->
-                <div class="footer-section">
-                    <h3>About Our Club</h3>
-                    <p>The Ford Model A Club has been bringing together enthusiasts of Henry Ford's successor to the Model T since 1985. We're dedicated to preserving, restoring, and enjoying these remarkable automobiles that helped shape American transportation history.</p>
-                    <div class="social-links">
-                        <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
-                        <a href="#" title="Email"><i class="fas fa-envelope"></i></a>
-                    </div>
-                </div>
-                
-                <!-- Quick links footer section -->
-                <div class="footer-section">
-                    <h3>Quick Links</h3>
-                    <p><a href="#events">Upcoming Events</a></p>
-                    <p><a href="#membership">Membership Info</a></p>
-                    <p><a href="#gallery">Photo Gallery</a></p>
-                    <p><a href="/newsletter">Newsletter Archive</a></p>
-                    <p><a href="/bylaws">Club Bylaws</a></p>
-                    <p><a href="/resources">Technical Resources</a></p>
-                </div>
-                
-                <!-- Resources footer section -->
-                <div class="footer-section">
-                    <h3>Model A Resources</h3>
-                    <p><a href="/parts-suppliers">Parts Suppliers</a></p>
-                    <p><a href="/restoration-guides">Restoration Guides</a></p>
-                    <p><a href="/maintenance-tips">Maintenance Tips</a></p>
-                    <p><a href="/history">Model A History</a></p>
-                    <p><a href="/technical-library">Technical Library</a></p>
-                    <p><a href="/swap-meet">Parts Swap Meet</a></p>
-                </div>
-                
-                <!-- Contact footer section -->
-                <div class="footer-section">
-                    <h3>Get In Touch</h3>
-                    <p><i class="fas fa-envelope"></i> info@modelaclub.org</p>
-                    <p><i class="fas fa-phone"></i> (555) 123-4567</p>
-                    <p><i class="fas fa-map-marker-alt"></i> 123 Main Street<br>Your City, ST 12345</p>
-                    <p><strong>Next Meeting:</strong><br><span id="nextMeeting">Loading...</span></p>
-                </div>
-            </div>
-            
-            <!-- Copyright and additional footer info -->
-            <div class="footer-bottom">
-                <p>&copy; 2025 Ford Model A Club. All rights reserved. | 
-                <a href="/privacy">Privacy Policy</a> | 
-                <a href="/terms">Terms of Service</a> | 
-                <a href="/accessibility">Accessibility</a></p>
-            </div>
-        </div>
-    </footer>
 
     <!-- JavaScript for Supabase integration and interactive functionality -->
     <script>
