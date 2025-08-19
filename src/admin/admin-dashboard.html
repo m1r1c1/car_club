@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper responsive behavior and SEO -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ford Model A Club - Admin Dashboard</title>
+    
+    <!-- Font imports for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- EXTERNAL CSS FILES - Load in correct order -->
+    <link rel="stylesheet" href="styles.css">      <!-- Base shared styles -->
+    <link rel="stylesheet" href="admin.css">       <!-- Admin panel styles -->
+    
+    <!-- JavaScript Libraries and Configuration -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>              <!-- Shared configuration -->
+    <script src="admin-session.js"></script>       <!-- NEW: Session management -->
+    
+</head>
+<body>
+    <!-- Login Screen (shown when not authenticated) -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                <i class="fas fa-car-side" style="font-size: 3rem; color: var(--secondary-color);"></i>
+            </div>
+            <h1>Admin Login</h1>
+            <p class="subtitle">Ford Model A Club Management</p>
+            
+            <!-- Login form -->
+            <form id="loginForm">
+                <div id="loginMessage"></div>
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="Enter your username" autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Enter your password" autocomplete="current-password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                
+                <!-- Debug info for troubleshooting -->
+                <div id="debugInfo" style="margin-top: 1rem; font-size: 0.8rem; color: #666; text-align: center;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (shown when authenticated) -->
+    <div id="adminDashboard" class="hidden">
+        <!-- Admin header with navigation -->
+        <header class="admin-header">
+            <div class="container">
+                <nav class="admin-nav">
+                    <div class="admin-logo">
+                        <i class="fas fa-car-side"></i>
+                        <span>Club Admin Dashboard</span>
+                    </div>
+                    <div class="admin-user">
+                        <span>Welcome, <strong id="currentUser" class="admin-user-name">Admin</strong></span>
+                        <button class="logout-btn" onclick="handleLogout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main dashboard content -->
+        <div class="container">
+            <!-- Dashboard overview -->
+            <div class="dashboard-main">
+                <h2>Dashboard Overview</h2>
+                <p class="mb-3">Welcome to the Ford Model A Club administration dashboard. Select a management area below to get started.</p>
+                
+                <!-- Statistics cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <div class="stat-number" id="memberCount">0</div>
+                        <div class="stat-label">Total Members</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="stat-number" id="eventCount">0</div>
+                        <div class="stat-label">Upcoming Events</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-newspaper"></i>
+                        <div class="stat-number" id="newsCount">0</div>
+                        <div class="stat-label">News Articles</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-images"></i>
+                        <div class="stat-number" id="photoCount">0</div>
+                        <div class="stat-label">Gallery Photos</div>
+                    </div>
+                </div>
+
+                <!-- Management areas -->
+                <h3>Management Areas</h3>
+                <div class="management-grid">
+                    <!-- Events Management -->
+                    <div class="management-card">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>Events Management</h3>
+                        <p>Create, edit, and manage club events, meetings, and activities. Set RSVP requirements and track attendance.</p>
+                        <a href="admin-events.html" class="btn btn-primary">
+                            <i class="fas fa-calendar-plus"></i> Manage Events
+                        </a>
+                    </div>
+
+                    <!-- News Management -->
+                    <div class="management-card">
+                        <i class="fas fa-newspaper"></i>
+                        <h3>News Management</h3>
+                        <p>Write and publish club news, announcements, and articles. Keep members informed about club activities.</p>
+                        <a href="admin-news.html" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Manage News
+                        </a>
+                    </div>
+
+                    <!-- Members Management -->
+                    <div class="management-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Members Management</h3>
+                        <p>Review membership applications, approve new members, and manage member information and status.</p>
+                        <a href="admin-members.html" class="btn btn-primary">
+                            <i class="fas fa-user-check"></i> Manage Members
+                        </a>
+                    </div>
+
+                    <!-- Photo Gallery Management -->
+                    <div class="management-card">
+                        <i class="fas fa-images"></i>
+                        <h3>Photo Gallery</h3>
+                        <p>Upload and manage photo gallery images. Showcase member cars and club events with descriptions.</p>
+                        <a href="admin-photos.html" class="btn btn-primary">
+                            <i class="fas fa-camera"></i> Manage Photos
+                        </a>
+                    </div>
+
+                    <!-- Admin Users Management -->
+                    <div class="management-card">
+                        <i class="fas fa-user-shield"></i>
+                        <h3>Admin Users</h3>
+                        <p>Create and manage administrative user accounts. Set roles and permissions for club officers.</p>
+                        <a href="admin-users.html" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> Manage Admins
+                        </a>
+                    </div>
+
+                    <!-- Website Management -->
+                    <div class="management-card">
+                        <i class="fas fa-globe"></i>
+                        <h3>Website Settings</h3>
+                        <p>Configure website settings, contact information, and general club details displayed on the main site.</p>
+                        <a href="admin-settings.html" class="btn btn-primary">
+                            <i class="fas fa-cog"></i> Website Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent activity section -->
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <div id="recentActivity">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for admin dashboard functionality -->
+    <script>
+        // ===== INITIALIZE SUPABASE USING SHARED CONFIG =====
+        let supabase = initializeSupabase();
+
+        // ===== DEBUG INFORMATION =====
+        
+        /**
+         * Show debug information for troubleshooting
+         * Displays current mode and demo credentials if applicable
+         */
+        function showDebugInfo() {
+            const debugDiv = document.getElementById('debugInfo');
+            const isConfigured = isSupabaseConfigured();
+            const demoCredentials = getDemoCredentials();
+            
+            debugDiv.innerHTML = `
+                <div style="background: #f0f0f0; padding: 0.5rem; border-radius: 4px; margin-top: 1rem;">
+                    <strong>Debug Info:</strong><br>
+                    Mode: ${isConfigured ? 'Production' : 'Demo'}<br>
+                    ${!isConfigured ? `Demo Login: ${demoCredentials.username} / ${demoCredentials.password}` : 'Production Mode Active'}
+                </div>
+            `;
+        }
+
+        // ===== AUTHENTICATION FUNCTIONS =====
+        
+        /**
+         * Handle admin login form submission with improved error handling
+         * Integrates with AdminSessionManager for persistent authentication
+         * @param {Event} event - Form submission event
+         */
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const username = formData.get('username');
+            const password = formData.get('password');
+            const loginBtn = document.getElementById('loginBtn');
+            const messageDiv = document.getElementById('loginMessage');
+            
+            // Clear previous messages
+            messageDiv.innerHTML = '';
+            
+            // Show loading state
+            const originalBtnText = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            loginBtn.disabled = true;
+            
+            console.log('=== LOGIN DEBUG ===');
+            console.log('Username:', username);
+            console.log('Password:', password);
+            console.log('Is configured:', isSupabaseConfigured());
+            
+            try {
+                if (!isSupabaseConfigured()) {
+                    // Demo mode authentication
+                    const demoCredentials = getDemoCredentials();
+                    if (username === demoCredentials.username && password === demoCredentials.password) {
+                        const demoUser = { 
+                            id: 1,
+                            username: demoCredentials.username, 
+                            full_name: 'Demo Admin', 
+                            role: 'admin',
+                            email: 'demo@modelaclub.com'
+                        };
+                        
+                        // Create persistent session using AdminSessionManager
+                        const sessionCreated = adminSession.createSession(demoUser);
+                        
+                        if (sessionCreated) {
+                            adminSession.showAdminContent();
+                            loadDashboardStats();
+                            loadRecentActivity();
+                            console.log('✅ Demo login successful');
+                        } else {
+                            throw new Error('Failed to create demo session');
+                        }
+                        
+                        return;
+                    } else {
+                        throw new Error(`Demo credentials: ${demoCredentials.username} / ${demoCredentials.password}`);
+                    }
+                }
+                
+                // Production mode authentication
+                if (!supabase) {
+                    throw new Error('Database connection not available');
+                }
+                
+                // Check database for user credentials
+                console.log('Checking database for user...');
+                const { data: dbCheck, error: dbError } = await supabase
+                    .from('admin_users')
+                    .select('username, password_hash, is_active')
+                    .eq('username', username);
+                
+                console.log('Database check result:', { dbCheck, dbError });
+                
+                if (dbError) {
+                    throw new Error('Database error: ' + dbError.message);
+                }
+                
+                if (!dbCheck || dbCheck.length === 0) {
+                    throw new Error('User not found in database');
+                }
+                
+                const storedUser = dbCheck[0];
+                console.log('Found user in database:', storedUser);
+                
+                // Try authentication with different password approaches
+                const hashedPassword = await hashPassword(password);
+                console.log('Generated hash:', hashedPassword);
+                console.log('Stored hash:', storedUser.password_hash);
+                
+                // Attempt authentication using database function
+                let { data, error } = await supabase.rpc('admin_login_simple', {
+                    p_username: username,
+                    p_password_hash: hashedPassword
+                });
+                
+                console.log('Authentication result:', { data, error });
+                
+                // Try alternative authentication methods if first attempt fails
+                if (!data || data.length === 0) {
+                    console.log('Trying alternative authentication methods...');
+                    
+                    // Try with stored hash
+                    ({ data, error } = await supabase.rpc('admin_login_simple', {
+                        p_username: username,
+                        p_password_hash: storedUser.password_hash
+                    }));
+                    
+                    // Try with plain password if hash doesn't work
+                    if (!data || data.length === 0) {
+                        ({ data, error } = await supabase.rpc('admin_login_simple', {
+                            p_username: username,
+                            p_password_hash: password
+                        }));
+                    }
+                }
+                
+                if (error) {
+                    throw new Error('Database function error: ' + error.message);
+                }
+                
+                if (data && data.length > 0) {
+                    const admin = data[0];
+                    console.log('Login successful!', admin);
+                    
+                    const authenticatedUser = {
+                        id: admin.id,
+                        username: admin.username,
+                        email: admin.email,
+                        full_name: admin.full_name,
+                        role: admin.role
+                    };
+                    
+                    // Create persistent session using AdminSessionManager
+                    const sessionCreated = adminSession.createSession(authenticatedUser);
+                    
+                    if (sessionCreated) {
+                        adminSession.showAdminContent();
+                        loadDashboardStats();
+                        loadRecentActivity();
+                        console.log('✅ Production login successful');
+                    } else {
+                        throw new Error('Failed to create user session');
+                    }
+                } else {
+                    console.log('All login attempts failed');
+                    throw new Error(`Login failed. Check your credentials.`);
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                messageDiv.innerHTML = `<div class="message error">${error.message}</div>`;
+            } finally {
+                // Reset button state regardless of outcome
+                loginBtn.innerHTML = originalBtnText;
+                loginBtn.disabled = false;
+            }
+        }
+        
+        /**
+         * Simple password hashing function for demo purposes
+         * Note: Use proper bcrypt or similar in production
+         * @param {string} password - Plain text password to hash
+         * @returns {Promise<string>} - Hashed password string
+         */
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password + 'salt123'); // Add proper salt in production
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        /**
+         * Handle admin logout using AdminSessionManager
+         * Clears persistent session and redirects appropriately
+         */
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                console.log('User requested logout');
+                
+                // Use AdminSessionManager to handle logout
+                adminSession.logout(false); // Don't redirect, just clear session
+                
+                // Reset form and show login screen
+                document.getElementById('loginForm').reset();
+                document.getElementById('loginMessage').innerHTML = '';
+                document.getElementById('debugInfo').innerHTML = '';
+                
+                // Show login form and hide dashboard
+                adminSession.showLoginForm();
+                
+                console.log('✅ Logout completed');
+            }
+        }
+
+        // ===== DASHBOARD DATA FUNCTIONS =====
+        
+        /**
+         * Load dashboard statistics using shared configuration
+         * Displays member, event, news, and photo counts
+         */
+        async function loadDashboardStats() {
+            try {
+                if (!isSupabaseConfigured()) {
+                    // Use demo stats from shared config
+                    document.getElementById('memberCount').textContent = '47';
+                    document.getElementById('eventCount').textContent = '8';
+                    document.getElementById('newsCount').textContent = '12';
+                    document.getElementById('photoCount').textContent = '156';
+                    return;
+                }
+                
+                // Get member count from database
+                const { count: memberCount } = await supabase
+                    .from('members')
+                    .select('*', { count: 'exact', head: true });
+                
+                // Get upcoming events count
+                const { count: eventCount } = await supabase
+                    .from('events')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('event_date', new Date().toISOString().split('T')[0]);
+                
+                // Get news count
+                const { count: newsCount } = await supabase
+                    .from('club_news')
+                    .select('*', { count: 'exact', head: true });
+                
+                // Get photos count
+                const { count: photoCount } = await supabase
+                    .from('photos')
+                    .select('*', { count: 'exact', head: true });
+                
+                // Update dashboard stats display
+                document.getElementById('memberCount').textContent = memberCount || 0;
+                document.getElementById('eventCount').textContent = eventCount || 0;
+                document.getElementById('newsCount').textContent = newsCount || 0;
+                document.getElementById('photoCount').textContent = photoCount || 0;
+                
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+                // Use fallback values if database query fails
+                document.getElementById('memberCount').textContent = '0';
+                document.getElementById('eventCount').textContent = '0';
+                document.getElementById('newsCount').textContent = '0';
+                document.getElementById('photoCount').textContent = '0';
+            }
+        }
+        
+        /**
+         * Load recent activity for dashboard using shared utilities
+         * Shows recent member applications, events, and news articles
+         */
+        async function loadRecentActivity() {
+            const container = document.getElementById('recentActivity');
+            
+            try {
+                if (!isSupabaseConfigured()) {
+                    // Use demo data from shared config
+                    const demoData = generateDemoData();
+                    displayDemoActivity(container, demoData);
+                    return;
+                }
+                
+                // Get recent members (last 3 applications)
+                const { data: recentMembers } = await supabase
+                    .from('members')
+                    .select('first_name, last_name, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(3);
+                
+                // Get recent events (last 2 created)
+                const { data: recentEvents } = await supabase
+                    .from('events')
+                    .select('title, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(2);
+                
+                // Get recent news (last 2 articles)
+                const { data: recentNews } = await supabase
+                    .from('club_news')
+                    .select('title, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(2);
+                
+                // Build activity feed using shared utility functions
+                let activityHTML = '';
+                
+                // Add recent member applications to activity feed
+                if (recentMembers) {
+                    recentMembers.forEach(member => {
+                        const timeAgo = getTimeAgo(member.created_at);
+                        activityHTML += `
+                            <div class="activity-item">
+                                <div class="activity-icon new-member">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>New Member Application</h4>
+                                    <p>${member.first_name} ${member.last_name} applied for membership</p>
+                                </div>
+                                <div class="activity-time">${timeAgo}</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Add recent event creations to activity feed
+                if (recentEvents) {
+                    recentEvents.forEach(event => {
+                        const timeAgo = getTimeAgo(event.created_at);
+                        activityHTML += `
+                            <div class="activity-item">
+                                <div class="activity-icon new-event">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Event Created</h4>
+                                    <p>${event.title}</p>
+                                </div>
+                                <div class="activity-time">${timeAgo}</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Add recent news publications to activity feed
+                if (recentNews) {
+                    recentNews.forEach(article => {
+                        const timeAgo = getTimeAgo(article.created_at);
+                        activityHTML += `
+                            <div class="activity-item">
+                                <div class="activity-icon new-news">
+                                    <i class="fas fa-newspaper"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>News Article Published</h4>
+                                    <p>${article.title}</p>
+                                </div>
+                                <div class="activity-time">${timeAgo}</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Display activity feed or show empty state
+                container.innerHTML = activityHTML || '<p class="text-center">No recent activity.</p>';
+                
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                container.innerHTML = '<div class="message error">Error loading recent activity.</div>';
+            }
+        }
+        
+        /**
+         * Display demo activity data for demonstration purposes
+         * @param {HTMLElement} container - Container element for activity display
+         * @param {Object} demoData - Demo data object with members, events, and news
+         */
+        function displayDemoActivity(container, demoData) {
+            let activityHTML = '';
+            
+            // Add demo member applications (limit to 2 for dashboard)
+            demoData.members.slice(0, 2).forEach(member => {
+                const timeAgo = getTimeAgo(member.created_at);
+                activityHTML += `
+                    <div class="activity-item">
+                        <div class="activity-icon new-member">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>New Member Application</h4>
+                            <p>${member.first_name} ${member.last_name} applied for membership</p>
+                        </div>
+                        <div class="activity-time">${timeAgo}</div>
+                    </div>
+                `;
+            });
+            
+            // Add demo event creations (limit to 1 for dashboard)
+            demoData.events.slice(0, 1).forEach(event => {
+                const timeAgo = getTimeAgo(event.created_at);
+                activityHTML += `
+                    <div class="activity-item">
+                        <div class="activity-icon new-event">
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>Event Created</h4>
+                            <p>${event.title}</p>
+                        </div>
+                        <div class="activity-time">${timeAgo}</div>
+                    </div>
+                `;
+            });
+            
+            // Add demo news publications (limit to 1 for dashboard)
+            demoData.news.slice(0, 1).forEach(article => {
+                const timeAgo = getTimeAgo(article.created_at);
+                activityHTML += `
+                    <div class="activity-item">
+                        <div class="activity-icon new-news">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>News Article Published</h4>
+                            <p>${article.title}</p>
+                        </div>
+                        <div class="activity-time">${timeAgo}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = activityHTML;
+        }
+
+        // ===== PAGE INITIALIZATION =====
+        
+        /**
+         * Initialize admin dashboard when DOM is loaded
+         * Sets up authentication checking and form handlers
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up form submission handler
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Show debug information for troubleshooting
+            showDebugInfo();
+            
+            // Check if user is already authenticated via AdminSessionManager
+            if (adminSession.isAuthenticated()) {
+                console.log('✅ User already authenticated, showing dashboard');
+                adminSession.showAdminContent();
+                loadDashboardStats();
+                loadRecentActivity();
+            } else {
+                console.log('❌ User not authenticated, showing login form');
+                adminSession.showLoginForm();
+            }
+            
+            // Log configuration status
+            console.log('🔧 Ford Model A Club Admin Dashboard loaded successfully!');
+            console.log('🔗 Database connection:', isSupabaseConfigured() ? 'Configured' : 'Demo mode');
+            console.log('🔐 Session management: Active');
+            
+            // Auto-fill demo credentials in demo mode for easier testing
+            if (!isSupabaseConfigured()) {
+                const demoCredentials = getDemoCredentials();
+                document.getElementById('username').value = demoCredentials.username;
+                document.getElementById('password').value = demoCredentials.password;
+                console.log('Demo credentials auto-filled for testing');
+            }
+        });
+    </script>
+</body>
+</html>
