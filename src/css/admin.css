@@ -12,47 +12,50 @@ body {
 
 /* ===== LOGIN SCREEN ===== */
 
-/* Login container - centers the login form perfectly on screen */
 .login-container {
-    /* Use flexbox for perfect centering */
     display: flex;
-    justify-content: center;    /* Center horizontally */
-    align-items: center;        /* Center vertically */
-    
-    /* Full viewport dimensions */
-    min-height: 100vh;         /* Full viewport height */
-    width: 100%;               /* Full viewport width */
-    
-    /* Background and positioning */
-    position: fixed;           /* Fixed positioning to cover entire screen */
-    top: 0;
-    left: 0;
-    z-index: 1000;            /* Ensure it's above other content */
-    
-    /* Background styling */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-attachment: fixed;
-    
-    /* Padding for mobile responsiveness */
-    padding: 20px;
-    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    padding: var(--spacing-md);
 }
 
-/* Login card - the actual form container */
 .login-card {
-    /* Card styling */
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    padding: 2.5rem;
+    background: var(--white);
+    padding: 3rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-hover);
     width: 100%;
-    max-width: 420px;           /* Maximum width for larger screens */
-    
-    /* Animation for smooth appearance */
-    animation: slideInUp 0.6s ease-out;
-    
-    /* Ensure card doesn't get too small on mobile */
-    min-width: 300px;
+    max-width: 400px;
+    text-align: center;
+    animation: slideInUp 0.5s ease;
+}
+
+.login-card h1 {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.login-card .subtitle {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.login-card .form-group {
+    text-align: left;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ===== ADMIN HEADER ===== */
