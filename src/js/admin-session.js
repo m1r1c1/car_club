@@ -239,7 +239,7 @@ class AdminSessionManager {
         // Only redirect if explicitly requested and not already on dashboard
         if (redirect && !window.location.pathname.includes('admin-dashboard.html')) {
             console.log('🔄 Redirecting to dashboard after logout');
-            window.location.href = 'admin-dashboard.html';
+            window.location.href = '/src/admin/admin-dashboard.html';
         } else {
             // If on dashboard, just show login form without reloading
             console.log('📝 Showing login form');
