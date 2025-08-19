@@ -60,7 +60,6 @@ async function loadHTMLComponent(componentPath, containerId, componentName) {
         // Insert the loaded HTML into the container
         container.innerHTML = htmlContent;
         
-        console.log(`✅ Successfully loaded ${componentName} from ${componentPath}`);
         return true;
         
     } catch (error) {
@@ -89,7 +88,6 @@ async function loadHTMLComponent(componentPath, containerId, componentName) {
  * @returns {Promise<void>}
  */
 async function loadAllComponents() {
-    console.log('🔄 Starting to load shared components...');
     
     // Track which components loaded successfully
     const loadResults = {
@@ -117,12 +115,6 @@ async function loadAllComponents() {
     // Log overall loading results
     const successCount = Object.values(loadResults).filter(Boolean).length;
     const totalComponents = Object.keys(loadResults).length;
-    
-    if (successCount === totalComponents) {
-        console.log('🎉 All components loaded successfully!');
-    } else {
-        console.warn(`⚠️ Loaded ${successCount}/${totalComponents} components successfully`);
-    }
     
     // Initialize any component-specific functionality after loading
     initializeComponentFeatures();
@@ -194,8 +186,6 @@ function setupMobileMenu() {
             }
         });
     });
-    
-    console.log('📱 Mobile menu functionality initialized');
 }
 
 /**
@@ -224,8 +214,6 @@ function setupSmoothScrolling() {
             }
         });
     });
-    
-    console.log('📜 Smooth scrolling initialized');
 }
 
 /**
@@ -247,8 +235,6 @@ function setupScrollEffects() {
             }
         }
     });
-    
-    console.log('🎨 Header scroll effects initialized');
 }
 
 /**
@@ -326,7 +312,6 @@ function checkProtocol() {
  * This is the main entry point that starts the component loading process
  */
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚗 Car Club Component Loader initialized');
     
     // Check if page is being served properly
     if (!checkProtocol()) {
