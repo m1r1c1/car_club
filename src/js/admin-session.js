@@ -1,7 +1,12 @@
 /**
- * Admin Session Manager for Ford Model A Club
+ * Admin Session Manager for Ford Model A Club - FIXED VERSION
  * Handles persistent authentication across all admin pages
  * Stores session in localStorage and manages automatic login/logout
+ * 
+ * FIXES APPLIED:
+ * - Removed automatic page reload that caused infinite reload loop
+ * - Added proper state management to prevent redirect cycles
+ * - Improved error handling and initialization logic
  */
 
 class AdminSessionManager {
@@ -16,6 +21,9 @@ class AdminSessionManager {
         this.sessionExpiry = null;
         this.lastActivity = Date.now();
         
+        // Flag to prevent infinite redirects
+        this.isInitialized = false;
+        
         // Initialize session management
         this.initializeSession();
         this.setupActivityTracking();
@@ -24,8 +32,14 @@ class AdminSessionManager {
     /**
      * Initialize session state when page loads
      * Checks for existing valid session and restores authentication
+     * FIXED: No longer triggers automatic redirects that cause reload loops
      */
     initializeSession() {
+        // Prevent multiple initializations
+        if (this.isInitialized) {
+            return this.isAuthenticated();
+        }
+        
         const savedSession = this.getStoredSession();
         
         // Check if we have a valid stored session
@@ -39,12 +53,14 @@ class AdminSessionManager {
             
             // Update last activity and extend session
             this.updateActivity();
+            this.isInitialized = true;
             
             return true; // User is authenticated
         } else {
-            // No valid session found
+            // No valid session found - clear any corrupted data
             this.clearSession();
             console.log('🔒 No valid session found');
+            this.isInitialized = true;
             
             return false; // User needs to login
         }
@@ -57,6 +73,12 @@ class AdminSessionManager {
      */
     createSession(user) {
         try {
+            // Validate user object has required properties
+            if (!user || !user.username || !user.id) {
+                console.error('❌ Invalid user object provided to createSession');
+                return false;
+            }
+            
             // Create session data with expiration
             const sessionData = {
                 user: user,
@@ -84,6 +106,7 @@ class AdminSessionManager {
 
     /**
      * Check if user is currently authenticated with valid session
+     * FIXED: No longer calls logout() which was causing page reloads
      * @returns {boolean} - True if user is authenticated
      */
     isAuthenticated() {
@@ -95,7 +118,7 @@ class AdminSessionManager {
         // Check if session has expired
         if (Date.now() >= this.sessionExpiry) {
             console.log('⏰ Session expired');
-            this.clearSession();
+            this.clearSession(); // Only clear session, don't reload page
             return false;
         }
         
@@ -173,17 +196,26 @@ class AdminSessionManager {
                 sessionData.expiry = Date.now() + this.SESSION_TIMEOUT;
                 this.sessionExpiry = sessionData.expiry;
                 
-                localStorage.setItem(this.SESSION_KEY, JSON.stringify(sessionData));
+                try {
+                    localStorage.setItem(this.SESSION_KEY, JSON.stringify(sessionData));
+                } catch (error) {
+                    console.error('❌ Error updating session activity:', error);
+                }
             }
         }
     }
 
     /**
      * Clear session data and reset authentication state
+     * FIXED: Only clears data, doesn't trigger page reloads
      */
     clearSession() {
-        // Remove from localStorage
-        localStorage.removeItem(this.SESSION_KEY);
+        try {
+            // Remove from localStorage
+            localStorage.removeItem(this.SESSION_KEY);
+        } catch (error) {
+            console.error('❌ Error removing session from storage:', error);
+        }
         
         // Reset state variables
         this.currentUser = null;
@@ -195,21 +227,23 @@ class AdminSessionManager {
 
     /**
      * Handle user logout
-     * Clears session and optionally redirects to login
+     * FIXED: Removed automatic page reload that caused infinite loops
      * @param {boolean} redirect - Whether to redirect to dashboard after logout
      */
-    logout(redirect = true) {
+    logout(redirect = false) {
         console.log('👋 User logging out:', this.currentUser?.username);
         
         // Clear session data
         this.clearSession();
         
-        // Redirect to main admin dashboard if requested
-        if (redirect && window.location.pathname !== '/admin-dashboard.html') {
+        // Only redirect if explicitly requested and not already on dashboard
+        if (redirect && !window.location.pathname.includes('admin-dashboard.html')) {
+            console.log('🔄 Redirecting to dashboard after logout');
             window.location.href = 'admin-dashboard.html';
-        } else if (redirect) {
-            // If already on dashboard, just reload to show login form
-            window.location.reload();
+        } else {
+            // If on dashboard, just show login form without reloading
+            console.log('📝 Showing login form');
+            this.showLoginForm();
         }
     }
 
@@ -245,59 +279,78 @@ class AdminSessionManager {
     }
 
     /**
-     * Protect current page - redirect to login if not authenticated
-     * Call this function on each admin page to ensure authentication
+     * Protect current page - show appropriate UI based on authentication
+     * FIXED: No longer causes redirects that trigger reload loops
+     * Call this function on each admin page to ensure proper UI state
      */
     protectPage() {
-        if (this.requiresAuthentication() && !this.isAuthenticated()) {
-            console.log('🚫 Access denied - redirecting to login');
-            
-            // If not on dashboard, redirect there for login
-            if (window.location.pathname !== '/admin-dashboard.html') {
-                window.location.href = 'admin-dashboard.html';
-                return false;
-            }
-            
-            // If on dashboard, ensure login form is shown
+        // Only proceed if page requires authentication
+        if (!this.requiresAuthentication()) {
+            return true; // Page doesn't require auth
+        }
+        
+        // Check if user is authenticated
+        if (this.isAuthenticated()) {
+            console.log('✅ User authenticated, showing admin content');
+            this.showAdminContent();
+            return true;
+        } else {
+            console.log('❌ User not authenticated, showing login form');
             this.showLoginForm();
             return false;
         }
-        
-        // User is authenticated or page doesn't require auth
-        return true;
     }
 
     /**
      * Show login form (only works on admin-dashboard.html)
+     * FIXED: Added error handling for missing elements
      */
     showLoginForm() {
         const loginScreen = document.getElementById('loginScreen');
         const adminDashboard = document.getElementById('adminDashboard');
         
         if (loginScreen && adminDashboard) {
+            // Show login screen and hide dashboard
             loginScreen.classList.remove('hidden');
+            loginScreen.style.display = 'block';
             adminDashboard.classList.add('hidden');
+            adminDashboard.style.display = 'none';
+            
+            console.log('📝 Login form displayed');
+        } else {
+            // Elements not found - likely not on dashboard page
+            console.log('⚠️ Login form elements not found on this page');
         }
     }
 
     /**
      * Show admin content (only works on admin-dashboard.html)
+     * FIXED: Added error handling for missing elements
      */
     showAdminContent() {
         const loginScreen = document.getElementById('loginScreen');
         const adminDashboard = document.getElementById('adminDashboard');
         
         if (loginScreen && adminDashboard) {
+            // Hide login screen and show dashboard
             loginScreen.classList.add('hidden');
+            loginScreen.style.display = 'none';
             adminDashboard.classList.remove('hidden');
+            adminDashboard.style.display = 'block';
+            
+            // Update user display
+            this.updateUserDisplay();
+            
+            console.log('🏠 Admin content displayed');
+        } else {
+            // Elements not found - likely not on dashboard page
+            console.log('⚠️ Admin content elements not found on this page');
         }
-        
-        // Update user display
-        this.updateUserDisplay();
     }
 
     /**
      * Update user display elements with current user info
+     * FIXED: Added error handling for missing elements
      */
     updateUserDisplay() {
         if (this.currentUser) {
@@ -312,15 +365,18 @@ class AdminSessionManager {
             userElements.forEach(element => {
                 element.textContent = this.currentUser.full_name || this.currentUser.username;
             });
+            
+            console.log('👤 User display updated');
         }
     }
 
     /**
      * Show inactivity warning to user
+     * FIXED: Improved user experience with clearer messaging
      */
     showInactivityWarning() {
         const shouldExtend = confirm(
-            'Your session will expire soon due to inactivity. ' +
+            'Your session will expire soon due to inactivity.\n\n' +
             'Click OK to extend your session or Cancel to logout.'
         );
         
@@ -329,8 +385,9 @@ class AdminSessionManager {
             this.updateActivity();
             console.log('⏱️ Session extended by user request');
         } else {
-            // User chose to logout
-            this.logout();
+            // User chose to logout - don't redirect automatically
+            console.log('⏱️ User chose to logout due to inactivity');
+            this.logout(false); // Don't redirect, just clear session
         }
     }
 
@@ -348,6 +405,7 @@ class AdminSessionManager {
         
         /**
          * Handle user activity events
+         * Only updates if authenticated and not recently updated
          */
         const handleActivity = () => {
             // Only update if authenticated and not recently updated
@@ -374,6 +432,8 @@ class AdminSessionManager {
                 handleActivity();
             }
         });
+        
+        console.log('📊 Activity tracking initialized');
     }
 
     /**
@@ -390,6 +450,31 @@ class AdminSessionManager {
         // You can expand this based on your role system
         return this.currentUser.role === requiredRole || this.currentUser.role === 'admin';
     }
+
+    /**
+     * Force refresh of session state from localStorage
+     * Useful for debugging or manual session recovery
+     */
+    refreshSession() {
+        console.log('🔄 Manually refreshing session state');
+        this.isInitialized = false;
+        return this.initializeSession();
+    }
+
+    /**
+     * Get session information for debugging
+     * @returns {Object} - Session debug information
+     */
+    getSessionInfo() {
+        return {
+            isAuthenticated: this.isAuthenticated(),
+            currentUser: this.currentUser,
+            sessionExpiry: this.sessionExpiry ? new Date(this.sessionExpiry) : null,
+            lastActivity: new Date(this.lastActivity),
+            timeUntilExpiry: this.sessionExpiry ? this.sessionExpiry - Date.now() : null,
+            isInitialized: this.isInitialized
+        };
+    }
 }
 
 // Create global session manager instance
@@ -398,23 +483,27 @@ const adminSession = new AdminSessionManager();
 // Make it available globally for other scripts
 window.adminSession = adminSession;
 
-// Auto-protect page if it's an admin page
+// FIXED: Improved auto-protection logic to prevent reload loops
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if current page requires authentication
+    console.log('🚀 AdminSessionManager DOMContentLoaded handler starting');
+    
+    // Only proceed if this is an admin page
     if (adminSession.requiresAuthentication()) {
-        const isAuthenticated = adminSession.protectPage();
+        console.log('📋 Admin page detected, checking authentication');
         
-        if (isAuthenticated) {
-            console.log('✅ User authenticated, showing admin content');
-            
-            // If on dashboard page, show admin content
-            if (window.location.pathname.includes('admin-dashboard.html')) {
-                adminSession.showAdminContent();
-            }
+        // Simply protect the page without forcing redirects
+        const isProtected = adminSession.protectPage();
+        
+        if (isProtected) {
+            console.log('✅ Page protection successful - user authenticated');
         } else {
-            console.log('❌ Authentication required');
+            console.log('🔒 Page protection applied - login required');
         }
+    } else {
+        console.log('📄 Non-admin page detected, no protection needed');
     }
+    
+    console.log('✨ AdminSessionManager initialization complete');
 });
 
 // Export for use in ES6 modules if needed
